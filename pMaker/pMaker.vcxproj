@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7ED54957-4740-4DD4-9A8A-7367A2258C95}</ProjectGuid>
+    <RootNamespace>pMaker</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>false</ValidateAllParameters>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\5000 SoftwareDev\myInclude;C:\Coin3d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;SOWIN_DLL;COIN_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>coin2d.lib;sowin1d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Coin3d\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>false</ValidateAllParameters>
+    </Midl>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="examinerdialog.cpp" />
+    <ClCompile Include="Extruder.cpp" />
+    <ClCompile Include="Flattener.cpp" />
+    <ClCompile Include="FractalTreeDialog.cpp" />
+    <ClCompile Include="FractalTreeMaker.cpp" />
+    <ClCompile Include="FractalTreeSpec.cpp" />
+    <ClCompile Include="GetFloatDialog.cpp" />
+    <ClCompile Include="GetIntegerDialog.cpp" />
+    <ClCompile Include="GetScalesDialog.cpp" />
+    <ClCompile Include="GetStringDialog.cpp" />
+    <ClCompile Include="grid.cpp" />
+    <ClCompile Include="HoleDialog.cpp" />
+    <ClCompile Include="Influence.cpp" />
+    <ClCompile Include="..\..\..\myInclude\Inspect.cpp" />
+    <ClCompile Include="Interface.cpp" />
+    <ClCompile Include="LineManip.cpp" />
+    <ClCompile Include="LineManipHilight.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="MarkerDialog.cpp" />
+    <ClCompile Include="OneIntegerDlg.cpp" />
+    <ClCompile Include="..\..\..\myInclude\PEntity.cpp" />
+    <ClCompile Include="..\..\..\myInclude\PEntityMgr.cpp" />
+    <ClCompile Include="pMaker.cpp" />
+    <ClCompile Include="pMakerDoc.cpp" />
+    <ClCompile Include="pMakerView.cpp" />
+    <ClCompile Include="..\..\..\myInclude\PManip.cpp" />
+    <ClCompile Include="ReadDXF.cpp" />
+    <ClCompile Include="SegmentDlg.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="WhichBranchDialog.cpp" />
+    <ClCompile Include="..\..\..\myInclude\WriteDXF.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="examinerdialog.h" />
+    <ClInclude Include="Extruder.h" />
+    <ClInclude Include="Flattener.h" />
+    <ClInclude Include="FractalTreeDialog.h" />
+    <ClInclude Include="FractalTreeMaker.h" />
+    <ClInclude Include="FractalTreeSpec.h" />
+    <ClInclude Include="GetFloatDialog.h" />
+    <ClInclude Include="GetIntegerDialog.h" />
+    <ClInclude Include="GetScalesDialog.h" />
+    <ClInclude Include="GetStringDialog.h" />
+    <ClInclude Include="grid.h" />
+    <ClInclude Include="HoleDialog.h" />
+    <ClInclude Include="Influence.h" />
+    <ClInclude Include="..\..\..\myInclude\Inspect.h" />
+    <ClInclude Include="Interface.h" />
+    <ClInclude Include="LineManip.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MarkerDialog.h" />
+    <ClInclude Include="OneIntegerDlg.h" />
+    <ClInclude Include="..\..\..\myInclude\PEntity.h" />
+    <ClInclude Include="..\..\..\myInclude\PEntityMgr.h" />
+    <ClInclude Include="pMaker.h" />
+    <ClInclude Include="pMakerDoc.h" />
+    <ClInclude Include="pMakerView.h" />
+    <ClInclude Include="..\..\..\myInclude\PManip.h" />
+    <ClInclude Include="..\..\..\myInclude\ReadDXF.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="SegmentDlg.h" />
+    <ClInclude Include="SplineManip.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="WhichBranchDialog.h" />
+    <ClInclude Include="..\..\..\myInclude\WriteDXF.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\pMaker.ico" />
+    <Image Include="res\pMakerDoc.ico" />
+    <Image Include="res\Toolbar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pMaker.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\pMaker.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="pMaker.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

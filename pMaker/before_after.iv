@@ -1,0 +1,18 @@
+#Inventor V2.1 ascii
+
+
+DEF Sep Separator {
+
+  DEF before_influence_iv File {
+    name "before_influence.iv"
+
+  }
+}
+
+DEF Sep Separator {
+
+  DEF after_influence_iv File {
+    name "after_influence.iv"
+
+  }
+}

@@ -1,0 +1,39 @@
+#Inventor V2.1 ascii
+
+
+DEF sectionCoords Coordinate3 {
+  point [ -1 1 0,
+      1 1 0,
+      1 -1 0,
+      -1 -1 0,
+      -1 1 0 ]
+
+}
+
+DEF hScaleCoords Coordinate3 {
+  point [ 0 1 0,
+      1 1 0 ]
+
+}
+
+DEF vScaleCoords Coordinate3 {
+  point [ 0 1 0,
+      1 1 0 ]
+
+}
+
+DEF twistCoords Coordinate3 {
+  point [ 0 1 0,
+      1 1 0 ]
+
+}
+
+DEF threeDCoords Coordinate3 {
+  point [ 0.012939946 0.23689453 0,
+      0.77297628 0 0,
+      1.3356004 0.25663567 0,
+      2 0 0,
+      2.6483903 0.26650622 0,
+      3.3689442 0 0 ]
+
+}

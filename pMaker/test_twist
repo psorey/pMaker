@@ -1,0 +1,18 @@
+#Inventor V2.1 ascii
+
+
+Coordinate3 {
+  point [ 0 0 1,
+      0 0 0,
+      0 0 0,
+      0 0 0,
+      0 0 0,
+      0 0 0,
+      0 0 0,
+      0 0 1 ]
+
+}
+
+LineSet {
+
+}

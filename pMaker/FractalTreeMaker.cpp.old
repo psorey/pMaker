@@ -1,0 +1,324 @@
+#include "stdafx.h"
+
+#include "FractalTreeMaker.h"
+#include "Influence.h"
+#include "Extruder.h"
+#include <Inspect.h>
+
+#include <WriteDXF.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoFile.h>
+#include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoDrawStyle.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoIndexedTriangleStripSet.h>
+#include <Inventor/nodes/SoTransform.h>
+#include <Inventor/actions/SoWriteAction.h>
+#include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/actions/SoGetMatrixAction.h>
+#include <Inventor/nodes/SoShapeHints.h>
+#include <Inventor/nodes/SoInfo.h>
+
+#define INCLUDE_EXTRUSIONS
+
+int FractalTreeMaker::sNumBranches = 0;
+
+FractalTreeMaker::FractalTreeMaker(SoSeparator * treeRoot, FractalTreeSpec * tree_spec)
+{
+    fSpiralInfluence = NULL;
+    fInfluence       = NULL;
+    fts              = tree_spec;         // pointer to FractalTreeSpec pMakerView::fFractalTreeSpec
+    fTreeRoot        = treeRoot;  
+    test_root        = new SoSeparator;
+    test_root->ref();  
+}
+
+FractalTreeMaker::~FractalTreeMaker()
+{
+    //if(fInfluence != NULL) 
+    //    delete fInfluence;
+    //if(fSpiralInfluence != NULL)
+   //     delete fSpiralInfluence;
+    test_root->unref();
+}
+
+void FractalTreeMaker::MakeTree(SoSeparator *baseNode, FractalTreeSpec * fts)  
+{
+    SoInfo *info          = new SoInfo;
+    fTreeRoot             = baseNode; 
+    // make annotation for SoInfo node...
+    CString notes = "\n\nCreated using pMakerCoin\nCopyright 2013 Paul Sorey\nFractal tree parameters used:\n";
+    CString info_string = fts->listSpecs();    
+    notes += info_string;
+    notes += "\n    ";
+    info->string.setValue(notes.GetBuffer());
+    fTreeRoot->addChild(info);
+        
+    // pass the FractalTreeSpec to Influence
+    fInfluence = new Influence(fts);
+    fExtruder = new Extruder();
+    int level = 0;
+    SbMatrix placement;
+    placement.makeIdentity();
+    double branchRotation = 0;
+    sNumBranches = 0;
+
+    ConstructTreeRecursively(fTreeRoot, placement, branchRotation, level);  // start the ball rolling...
+    
+    char * filename_test = "C:\\3000 ArtProjects\\048 Austin\\tree\\test_.iv";
+    Inspect::WriteTree(filename_test, test_root);
+    delete fExtruder;
+    delete fInfluence;
+}
+
+void FractalTreeMaker::ConstructTreeRecursively(SoSeparator * branchRoot, SbMatrix placement, double branchRotation, int level)
+{
+    //  SbMatrix placement
+    //     tells us where to put the extrusion we are making:
+    //     put it at the tip of the last branch (rotation + translation)
+    //     (both can be calculated from the last two points in the previous branch.
+    //     but it may be better to multiply the incoming matrix...
+
+    sNumBranches++;
+    branchRotation = fts->fLRot[level] * .0174532925;  
+    SoSeparator * branchSep = new SoSeparator;
+    branchRoot->addChild(branchSep);   
+    this->MakeBranch(true  /* left side  */, branchSep, fts->fLeftCentCoords,  placement, branchRotation, level);
+    this->MakeBranch(false /* right side */, branchSep, fts->fRightCentCoords, placement, branchRotation, level);
+    return;
+}
+
+void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SoCoordinate3 * centerlineCoords, SbMatrix placement, float branchRotation, int level) // bool isLeft, int level)
+{
+    // get the branch scale for left or right...
+    SbMatrix  centerline_scale_matrix;
+    SbMatrix  fractal_scale_matrix;
+    float     fractal_scale;
+    float     centerline_scale;
+
+    if (TRUE == isLeft) {
+        fractal_scale = (pow(fts->fLeftABRatio, level));
+        centerline_scale = fts->fLCentScale[level];
+    } else {
+        fractal_scale = (pow(fts->fRightABRatio, level));
+        centerline_scale = fts->fRCentScale[level];
+    }
+    fractal_scale_matrix.makeIdentity();
+    fractal_scale_matrix.setScale(fractal_scale);
+    centerline_scale_matrix.makeIdentity();
+    centerline_scale_matrix.setScale(centerline_scale);
+    // above could be removed to a function returning matrices??
+    
+    // create some new persistent objects with unique names...
+    SoCoordinate3  * branchCenterlineCoords = new SoCoordinate3;
+    SoLineSet      * branchLine             = new SoLineSet;
+    SoSeparator    * branch_sep             = new SoSeparator;
+    SoTransform    * placement_transform    = new SoTransform;   
+
+    char node_name[1000];
+    sprintf(node_name, "level_%d", level);
+    branch_sep->setName(node_name);
+
+    // stretch or shrink the centerline according to centerline_scale for this level...
+    int num_coords = centerlineCoords->point.getNum();
+    SbVec3f  result;
+    
+    // scale it by fractal_scale...
+    // 
+    for (int j = 0; j < num_coords; j++) {
+        fractal_scale_matrix.multVecMatrix(centerlineCoords->point[j], result);
+        branchCenterlineCoords->point.set1Value(j, result);   // replace the old value with new one...
+    } 
+    // stretch or shrink the centerline according to centerline_scale for this level...    
+    for (int j = 0; j < num_coords; j++) {
+        centerline_scale_matrix.multVecMatrix(branchCenterlineCoords->point[j], result);
+        branchCenterlineCoords->point.set1Value(j, result);     
+    }
+
+    // because we're at the 'real' location:
+    // find the transform describing the beginning position of the next branch...
+    SbVec3f to = branchCenterlineCoords->point[num_coords-1] - branchCenterlineCoords->point[num_coords-2];
+    SbVec3f from(1, 0, 0);
+    // if there was twist involved, use the twist amount from the final path vector...
+    float ftwist;
+    if (TRUE == isLeft) {
+        ftwist = (fts->fLeftTwistCoords->point[fts->fLeftTwistCoords->point.getNum()-1][1] - fts->fLeftTwistCoords->point[0][1]);
+    } else {
+        ftwist = (fts->fRightTwistCoords->point[fts->fRightTwistCoords->point.getNum()-1][1] - fts->fRightTwistCoords->point[0][1]);
+    }
+    // get the rotation from the spec...
+    double current_rotation = 0.0;
+    for(int k = 0; k < level; k++) {
+        current_rotation += fts->fLRot[k];
+    }
+    // SbRotation twist  = SbRotation(to, branchRotation /* + ftwist */ );  // rotate along the rotated x-axis
+    SbRotation twist     = SbRotation(to, current_rotation  /* + ftwist */ );  // rotate along the rotated x-axis
+    SbRotation branchRot = SbRotation(from, to);
+    branchRot *= twist; 
+
+    SbMatrix this_branch_matrix;
+    this_branch_matrix.makeIdentity();
+    this_branch_matrix.setRotate(branchRot);
+    this_branch_matrix *= placement;
+
+    // now apply the placement matrix to the centerline (put it where it goes on the tree)...
+    for (int j = 0; j < num_coords; j++) {
+        this_branch_matrix.multVecMatrix(branchCenterlineCoords->point[j], result);
+        branchCenterlineCoords->point.set1Value(j, result);   // replace the old value with new one...
+    }
+
+    //SbMatrix next_branch_matrix;
+    //next_branch_matrix.setTransform(branchCenterlineCoords->point[num_coords -1 ], branchRot, SbVec3f(1, 1, 1));
+
+    // testing...
+    SoSeparator   * test_sep     = new SoSeparator;
+    SoCoordinate3 * test_coords  = new SoCoordinate3;
+    SoLineSet     * test_lines   = new SoLineSet;
+   // SoTransform   * test_trans   = new SoTransform;
+
+    //test_trans->setMatrix(placement);
+    //test_sep->addChild(test_trans);
+    test_sep->addChild(test_coords);
+    test_coords->copyFieldValues(branchCenterlineCoords);
+    test_sep->addChild(test_lines);
+    test_root->addChild(test_sep);
+
+   // char * filename_bef = "C:\\3000 ArtProjects\\048 Austin\\tree\\coordsBefore.iv";
+   // Inspect::WriteCoordinate3(filename_bef, branchCenterlineCoords);
+
+    /*
+    // now apply the Influence...
+    if(fInfluence != NULL)
+       fInfluence->influence_coords(branchCenterlineCoords, level);
+    //   if(fSpiralInfluence != NULL)
+    //      fSpiralInfluence->influence_coords(leftBranchCoords, level);
+    */
+
+    // now apply the placement matrix in reverse to return the centerline to its original location...
+    SbMatrix inverse = this_branch_matrix.inverse();
+    for (int j = 0; j < num_coords; j++) {       
+        inverse.multVecMatrix(branchCenterlineCoords->point[j], result);
+        branchCenterlineCoords->point.set1Value(j, result);   // replace the old value with new one...
+    }
+    // centerline is at 0,0,  beginning direction is 1,0,0
+    // Inspect::WriteCoordinate3("returned.iv", branchCenterlineCoords);
+    // now apply the placement matrix to the extrusion...
+    branch_sep->addChild(placement_transform);  // placement of the base of current branch (transform and rotate the cent coords).
+    placement_transform->setMatrix(placement);
+
+    // alternating colors for extrusions...
+    SoMaterial    * levelMaterial = new SoMaterial;
+    levelMaterial->shininess.setValue(.9);
+    levelMaterial->diffuseColor.setValue(SbColor(.82, .82, .82));
+    if ( level % 2 == 0 ) {
+        levelMaterial->diffuseColor.setValue(SbColor(.72, .72, .72));
+    }
+    branch_sep->addChild(levelMaterial);
+
+    float thickness = 0.0;
+    if (fts->fUseThickness)
+        thickness = fts->fLThick[level];
+
+    // EXTRUDE   Extruder takes shapeCoords, centerlineCoords (already scaled by fractal scale and centerline scale)
+    bool flatten = FALSE;
+    if (TRUE == isLeft) {
+        branch_sep->addChild(fExtruder->extrude_fractal(fts->fShapeCoords, branchCenterlineCoords, fts->fLeftHScaleCoords, fts->fLeftVScaleCoords, fts->fLeftTwistCoords, fractal_scale, thickness, false ));
+    } else {
+        branch_sep->addChild(fExtruder->extrude_fractal(fts->fShapeCoords, branchCenterlineCoords, fts->fRightHScaleCoords, fts->fRightVScaleCoords, fts->fRightTwistCoords, fractal_scale, thickness, false ));
+    }
+    branchRoot->addChild(branch_sep);
+
+    // now make a placement_matrix for the next branch...
+    if(level <= fts->fNumLevels)  {
+        // get the angle of deflection from the x-axis to the last line segment of the path...
+        //   this should probably change so that the next fractal can join at an angle...!!!
+        //   We could use point 0 and the last point as 'directors' for the beginning and end plates and extrude points[1] thru [num_coords-2]
+        SbVec3f to = branchCenterlineCoords->point[num_coords-1] - branchCenterlineCoords->point[num_coords-2];
+        SbVec3f from(1, 0, 0);
+        // if there was twist involved, use the twist amount from the final path vector...
+        float ftwist;
+        if (TRUE == isLeft) {
+            ftwist = (fts->fLeftTwistCoords->point[fts->fLeftTwistCoords->point.getNum()-1][1] - fts->fLeftTwistCoords->point[0][1]);
+        } else {
+            ftwist = (fts->fRightTwistCoords->point[fts->fRightTwistCoords->point.getNum()-1][1] - fts->fRightTwistCoords->point[0][1]);
+        }
+
+        SbRotation twist = SbRotation(to, branchRotation /* + ftwist */ );  // rotate along the rotated x-axis
+        SbRotation branchRot = SbRotation(from, to);
+        branchRot *= twist; 
+
+        if(level < fts->fNumLevels)  {
+            SbMatrix branchMatrix;
+            // translation for next branch = coordinates of last path vertex
+            branchMatrix.setTransform(branchCenterlineCoords->point[num_coords-1], branchRot, SbVec3f(1, 1, 1));   
+            // branchMatrix *= placement;  // accumulate the transformation matrix...
+            // for the centerline...
+            SoSeparator * newSep = new SoSeparator;
+            branch_sep->addChild(newSep);
+            ConstructTreeRecursively(newSep, branchMatrix, fts->fLRot[level], level+1); //
+            // ConstructTreeRecursively(newSep, next_branch_matrix, fts->fLRot[level], level+1); // !!!
+
+        }
+    }
+}
+
+
+/////////////////////////////////////////////////////////////
+//  UTILITIES  -- put somewhere else!!!                    //
+/////////////////////////////////////////////////////////////
+
+
+SoNode * FractalTreeMaker::findNodeByName(SoGroup *parent, char *name)
+{
+    SoSearchAction search;
+    SoPath *path;
+    SoNode *node;    
+    search.setName(SbName(name));
+    search.setInterest(SoSearchAction::FIRST);
+    search.apply(parent);    
+    path = search.getPath();
+    if (path == NULL) return NULL;
+    node = path->getTail();
+    return node;
+}
+
+SbMatrix FractalTreeMaker::getNodeMatrix(SoNode *mynode) 
+{
+  // First get hold of an SoPath through the scenegraph down to the
+  // node ("mynode") you want to query about its current world space
+  // transformation(s).
+
+  SoSearchAction * searchaction = new SoSearchAction;
+  searchaction->setNode(mynode);
+  searchaction->apply(fTreeRoot);
+
+  SoPath * path = searchaction->getPath();
+  assert(path != NULL);
+
+  // Then apply the SoGetMatrixAction to get the full transformation
+  // matrix from world space.
+
+  const SbViewportRegion vpr = NULL;
+  SoGetMatrixAction * getmatrixaction = new SoGetMatrixAction(vpr);
+  getmatrixaction->apply(path);
+
+  SbMatrix transformation = getmatrixaction->getMatrix();
+
+  // And if you want to access the individual transformation
+  // components of the matrix:
+
+  SbVec3f translation;
+  SbRotation rotation;
+  SbVec3f scalevector;
+  SbRotation scaleorientation;
+
+  transformation.getTransform(translation, rotation, scalevector, scaleorientation);
+  return transformation;
+}
+
+void FractalTreeMaker::FlattenAllLevels(CString filename_ext)
+{
+    // yes, this is the place to do it!
+}

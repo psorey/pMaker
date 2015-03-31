@@ -1,0 +1,19 @@
+ *.ncb
+ *.sdf
+_UpgradeReport_Files/
+debug/
+Backup
+ipch
+TestResults
+
+# ignore objects and archives, anywhere in the tree.
+*.[oa]
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so 

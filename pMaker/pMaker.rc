@@ -1,0 +1,828 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\pMaker.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""afxprint.rc""       // printing/print preview resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\pMaker.ico"
+IDR_pMakerTYPE          ICON                    "res\\pMakerDoc.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About pMaker"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
+    LTEXT           "pMaker Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2012",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_SHAPE_MARKER_DIALOG DIALOG 0, 0, 72, 82
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Markers"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_SEGMENT,13,17,28,14,ES_AUTOHSCROLL
+    LTEXT           "Segment #:",IDC_STATIC,13,7,38,8
+    EDITTEXT        IDC_MARKER_SIZE,14,52,29,14,ES_AUTOHSCROLL
+    LTEXT           "Marker Size",IDC_STATIC,14,41,38,8
+    CONTROL         "Spin1",IDC_SPIN_SEGMENT,"msctls_updown32",UDS_ARROWKEYS,43,18,11,14
+    CONTROL         "Spin2",IDC_SPIN_SIZE,"msctls_updown32",UDS_ARROWKEYS,47,53,10,14
+END
+
+IDD_SEGMENT_DLG DIALOGEX 0, 0, 88, 17
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Segment            Side"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_SEGMENT,1,1,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_SIDE,59,1,24,14,ES_AUTOHSCROLL
+END
+
+IDD_HOLE_DIALOG DIALOG 0, 0, 162, 79
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hole Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,94,20,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,94,40,50,14
+    LTEXT           "Hole Offset",IDC_STATIC,7,10,36,8
+    EDITTEXT        IDC_EDIT_OFFSET,7,21,40,14,ES_AUTOHSCROLL
+    LTEXT           "Hole Spacing",IDC_STATIC,7,42,44,8
+    EDITTEXT        IDC_EDIT_SPACING,7,53,40,14,ES_AUTOHSCROLL
+END
+
+IDD_GET_ONE_INTEGER_DLG DIALOG 0, 0, 101, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDIT1,13,18,40,14,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,56,18,11,14
+    LTEXT           "Static",IDC_STATIC,14,7,19,8
+END
+
+IDD_GET_INTEGER_DIALOG DIALOG 0, 0, 144, 76
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Static",IDC_STATIC_UPPER,13,3,19,8
+    LTEXT           "Static",IDC_STATIC_LOWER,14,31,19,8
+    EDITTEXT        IDC_INTEGER_EDIT,13,13,40,14,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,56,13,10,14
+    EDITTEXT        IDC_INTEGER_EDIT2,13,41,40,14,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_ARROWKEYS,56,41,11,14
+    PUSHBUTTON      "OK",IDOK,80,13,50,14
+END
+
+IDD_GET_FLOAT_DIALOG DIALOGEX 0, 0, 156, 92
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Offset Dialog"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,99,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,99,24,50,14
+    LTEXT           "Enter Desired Offset:",IDC_STATIC,5,25,66,8
+    EDITTEXT        IDC_FLOAT_EDIT,7,38,64,14,ES_AUTOHSCROLL
+END
+
+IDD_IVDIALOG_DIALOG DIALOGEX 0, 0, 410, 300
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_APPWINDOW
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_VIEWER,"Static",SS_LEFTNOWORDWRAP | SS_NOTIFY | WS_GROUP,7,55,397,241
+    PUSHBUTTON      "   Load IV",IDC_LOAD,5,1,39,11
+    PUSHBUTTON      "Save...",IDC_SAVE,105,1,32,11
+    PUSHBUTTON      "Clear",IDC_CLEAR,139,1,33,11
+    CONTROL         "Closed",IDC_CHECK_CLOSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,217,1,37,10
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,257,0,11,13
+    EDITTEXT        IDC_VERT_EXAG,269,0,24,12,ES_AUTOHSCROLL
+    LTEXT           "num spline seg",IDC_STATIC,295,2,49,8
+    PUSHBUTTON      "DXFin",IDC_DXF,105,14,31,11
+    PUSHBUTTON      "Ld Bckgnd...",IDC_LOAD_BG,350,1,51,11
+    PUSHBUTTON      "Reverse",IDC_REVERSE,173,1,33,11
+    PUSHBUTTON      "DXFout",IDC_DXF_OUT,139,14,33,11
+    PUSHBUTTON      "Spline/Line",IDC_SPLINE_BUTTON,53,1,41,11
+    CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,189,15,101,10
+END
+
+IDD_GET_SCALES_DIALOG DIALOGEX 0, 0, 255, 95
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change Loft Scales"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,198,24,50,14
+    EDITTEXT        IDC_SEC_SCALE,31,18,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_CENT_SCALE,31,36,40,14,ES_AUTOHSCROLL
+    LTEXT           "section scale",IDC_STATIC,78,20,42,8
+    LTEXT           "centerline scale",IDC_STATIC,78,39,50,8
+    EDITTEXT        IDC_THICKNESS,31,55,40,14,ES_AUTOHSCROLL
+    LTEXT           "thickness",IDC_STATIC,79,57,30,8
+END
+
+IDD_DIALOG1 DIALOGEX 0, 0, 186, 95
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_FRACTAL_TREE_DIALOG DIALOGEX 0, 0, 646, 290
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Fractal Tree Specs"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Generate",IDOK,350,242,67,30
+    PUSHBUTTON      "Cancel",IDCANCEL,285,250,41,14
+    EDITTEXT        IDC_NUM_LEVELS,17,71,40,14,ES_AUTOHSCROLL
+    LTEXT           "Number of Levels to Generate",IDC_STATIC,65,73,97,8
+    EDITTEXT        IDC_LEFT_ABR,18,107,40,14,ES_AUTOHSCROLL
+    LTEXT           "Left AB Ratio",IDC_STATIC,65,109,43,8
+    EDITTEXT        IDC_INFL_DIR,18,143,40,15,ES_AUTOHSCROLL
+    LTEXT           "Influence Direction (degrees)",IDC_STATIC,66,145,94,8
+    EDITTEXT        IDC_LEFT_BRANCH,15,14,97,14,ES_AUTOHSCROLL
+    LTEXT           "Left Branch Filename",IDC_STATIC,140,17,68,8
+    EDITTEXT        IDC_EDIT8,15,32,97,14,ES_AUTOHSCROLL
+    LTEXT           "Right Branch Filename",IDC_STATIC,140,34,72,8
+    CONTROL         "Use Exponential Effect",IDC_CHECK_EXPONENTIAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,54,180,89,10
+    CONTROL         "Use Spiral Effect",IDC_CHECK_SPIRAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,54,193,69,10
+    LTEXT           "Scale",IDC_STATIC,296,32,18,8
+    LTEXT           "Level 1",IDC_STATIC,243,62,24,8
+    EDITTEXT        IDC_LTHICK_1,357,60,37,14,ES_AUTOHSCROLL
+    LTEXT           "Thickness",IDC_STATIC,380,32,32,8
+    LTEXT           "Level 2",IDC_STATIC,243,80,24,8
+    EDITTEXT        IDC_LTHICK_2,357,78,37,14,ES_AUTOHSCROLL
+    LTEXT           "Level 3",IDC_STATIC,243,98,24,8
+    EDITTEXT        IDC_LTHICK_3,357,96,37,14,ES_AUTOHSCROLL
+    LTEXT           "Level 4",IDC_STATIC,243,116,24,8
+    EDITTEXT        IDC_LTHICK_4,357,114,37,14,ES_AUTOHSCROLL
+    LTEXT           "Level 5",IDC_STATIC,243,134,24,8
+    EDITTEXT        IDC_LTHICK_5,357,132,37,14,ES_AUTOHSCROLL
+    LTEXT           "Level 6",IDC_STATIC,243,152,24,8
+    EDITTEXT        IDC_LTHICK_6,357,150,37,14,ES_AUTOHSCROLL
+    LTEXT           "Level 7",IDC_STATIC,243,170,24,8
+    EDITTEXT        IDC_LTHICK_7,357,168,37,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_1,274,60,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_2,274,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_3,274,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_4,274,114,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_5,274,132,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_6,274,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_7,274,168,26,14,ES_AUTOHSCROLL
+    LTEXT           "Path",IDC_STATIC,296,23,16,8
+    CONTROL         "Use Linear Effect",IDC_CHECK_LINEAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,54,167,71,10
+    PUSHBUTTON      "...",IDC_BROWSE_BRANCH,117,15,17,14
+    CONTROL         "",IDC_USE_THICKNESS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,393,44,16,10
+    LTEXT           "Level 8",IDC_STATIC,244,188,24,8
+    EDITTEXT        IDC_LTHICK_8,357,186,37,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_8,274,186,26,14,ES_AUTOHSCROLL
+    LTEXT           "Level 9",IDC_STATIC,244,206,24,8
+    EDITTEXT        IDC_LTHICK_9,357,204,37,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LSCALE_9,274,204,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_1,458,60,26,14,ES_AUTOHSCROLL
+    LTEXT           "Rotation",IDC_STATIC,474,32,28,8
+    EDITTEXT        IDC_LROT_2,458,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_3,458,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_4,458,114,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_5,458,132,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_6,458,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_7,458,168,26,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_USE_ROTATION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,484,44,16,10
+    EDITTEXT        IDC_LROT_8,458,186,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LROT_9,458,204,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_1,547,61,26,14,ES_AUTOHSCROLL
+    LTEXT           "Influence",IDC_STATIC,567,32,31,8
+    EDITTEXT        IDC_LINFL_2,547,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_3,547,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_4,547,114,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_5,547,133,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_6,547,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_7,547,168,26,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_USE_INFL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,575,45,16,10
+    EDITTEXT        IDC_LINFL_8,547,186,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LINFL_9,547,205,26,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_USE_PATH_SCALE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,299,44,16,10
+    EDITTEXT        IDC_RINFL_1,582,61,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_2,582,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_3,582,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_4,582,114,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_5,582,133,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_6,582,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_7,582,168,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_8,582,186,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RINFL_9,582,205,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_1,492,60,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_2,492,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_3,492,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_4,492,113,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_5,492,132,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_6,492,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_7,492,168,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_8,492,185,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RROT_9,492,204,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RIGHT_ABR,117,107,40,14,ES_AUTOHSCROLL
+    LTEXT           "Right AB Ratio",IDC_STATIC,166,109,47,8
+    EDITTEXT        IDC_RSCALE_1,309,60,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_2,309,78,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_3,309,96,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_4,309,113,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_5,309,132,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_6,309,150,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_7,309,168,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_8,309,185,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RSCALE_9,309,204,26,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_1,403,60,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_2,403,78,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_3,403,96,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_4,403,113,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_5,403,132,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_6,403,150,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_7,403,168,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_8,403,185,35,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RTHICK_9,403,204,35,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_BRANCH2,117,32,17,14
+    PUSHBUTTON      "X",IDC_BROWSE_BRANCH3,605,13,17,14
+    EDITTEXT        IDC_FACTOR_EDIT,569,12,26,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "LOAD",IDC_BUTTON1,41,251,50,14
+    PUSHBUTTON      "SAVE",IDC_SAVE_FRACTALTREESPEC,117,251,50,14
+END
+
+IDD_GET_STRING_DIALOG DIALOGEX 0, 0, 148, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Input Filename Prefix"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,91,7,50,33
+    EDITTEXT        IDC_PREFIX,7,19,68,14,ES_AUTOHSCROLL
+    LTEXT           "Filename prefix",IDC_STATIC,7,7,50,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "pMaker.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "pMaker.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_SHAPE_MARKER_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 65
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 74
+    END
+
+    IDD_SEGMENT_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 83
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 10
+    END
+
+    IDD_HOLE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 155
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 72
+    END
+
+    IDD_GET_ONE_INTEGER_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 94
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    IDD_GET_INTEGER_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 69
+    END
+
+    IDD_GET_FLOAT_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 149
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
+    END
+
+    IDD_IVDIALOG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 404
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 296
+    END
+
+    IDD_GET_SCALES_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 248
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_FRACTAL_TREE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 13
+        RIGHTMARGIN, 636
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 281
+    END
+
+    IDD_GET_STRING_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 141
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Save Loft Object",            ID_SAVELOFT
+        MENUITEM "Save Multiiple Lofts",        ID_FILE_SAVE_MULTIIPLES
+        MENUITEM "Remove Loft Object",          ID_REMOVELOFT
+        MENUITEM SEPARATOR
+        MENUITEM "Change Loft Scale",           ID_FILE_CHANGE_LOFT_SCALE
+        MENUITEM SEPARATOR
+        MENUITEM "Flatten",                     ID_FLATTEN
+        MENUITEM "Flatten -- Polyline Edges",   ID_FLATTEN_POLYLINE
+        MENUITEM "Flatten-imported coords",     ID_FILE_FLATTENIMPORTEDCOORDS
+        MENUITEM "Flatten - Two Imported Lines", ID_FLATTEN_TWO
+        MENUITEM "   reverse of above...",      ID_REVERSE
+        MENUITEM "Load Construction Data...",   ID_LOAD_CONSTRUCTION_DATA
+        MENUITEM "Save All Construction Data...", ID_SAVE_CONSTRUCTION_DATA
+        MENUITEM SEPARATOR
+        MENUITEM "Translate DXF to IV...",      ID_FILE_DXFTOIV
+        MENUITEM SEPARATOR
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "Re&Load",                     ID_FILE_RELOAD
+        MENUITEM "I&mport",                     ID_FILE_IMPORT
+        MENUITEM SEPARATOR
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "In&fo...",                    ID_FILE_INFO
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+        MENUITEM "extrude between 2 shapes",    ID_FILE_LOADMULTIPLECROSS
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "Vert Scale = Horiz Scale",    ID_VERT_EQ_HORIZ, CHECKED
+        MENUITEM "Add Edge Holes...",           ID_EDIT_ADD_HOLES
+        MENUITEM SEPARATOR
+        MENUITEM "Specify Offset...",           ID_EDIT_OFFSET
+        MENUITEM "Specify Begin and End of Shape", ID_EDIT_BEGIN_END
+        MENUITEM SEPARATOR
+        MENUITEM "Multiple Rotated Copies...",  ID_EDIT_MULTIPLES
+        MENUITEM SEPARATOR
+        MENUITEM "Transform Box On",            ID_EDIT_TRANSFORM_BOX_ON
+        MENUITEM "Transform Box Off",           ID_EDIT_TRANSFORM_BOX_OFF
+        MENUITEM "Zero Transform",              ID_REMOVE_TRANSFORM
+        MENUITEM SEPARATOR
+        MENUITEM "Use Clip Plane",              ID_EDIT_CLIPPLANE
+        MENUITEM "Clip Plane Off",              ID_EDIT_CLIPPLANEOFF
+        MENUITEM "Anti-Squish",                 ID_ANTISQUISH, CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "Orient to Reference Line",    ID_EDIT_ORIENT_TO_REFERENCE_LINE
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM SEPARATOR
+        MENUITEM "Viewing",                     ID_VIEW_PICEDIT
+        MENUITEM SEPARATOR
+        MENUITEM "Add Backgnd (lines)...",      ID_ADD_BACKGROUND
+        MENUITEM "Add Backgnd (solid)...",      ID_ADD_BACKGND_SOLID
+        MENUITEM "Delete Background Files",     ID_DELETE_BACKGROUND
+        MENUITEM SEPARATOR
+        MENUITEM "Search background",           ID_SEARCH_BACKGROUND
+        MENUITEM "Use Segment Dialog",          ID_USE_SEGMENT_DIALOG
+        MENUITEM SEPARATOR
+        MENUITEM "Use Markers",                 ID_USE_MARKERS
+    END
+    POPUP "Trees"
+    BEGIN
+        MENUITEM "Make Tree",                   ID_TREES_TEST_TREE
+        MENUITEM "Save Tree and Parameters ",   ID_TREES_SAVETREEPARAMETERS
+        MENUITEM "Flatten All Levels",          ID_FLATTEN_ALL_LEVELS
+        MENUITEM "Load Tree Spec from file...", ID_TREES_LOADTREESPECFROMFILE
+        MENUITEM "Save Fractal Tree Spec...",   ID_FILE_SAVE_AS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About pMaker...",            ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_X_SEC_BUTTON
+    SEPARATOR
+    BUTTON      ID_THREE_D_BUTTON
+    SEPARATOR
+    BUTTON      ID_VSCALE_BUTTON
+    BUTTON      ID_HSCALE_BUTTON
+    SEPARATOR
+    BUTTON      ID_TWIST_BUTTON
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
+    ID_VIEW_SELECTIONMODE   "select selection mode mode"
+    ID_VIEW_VIEWINGMODE     "select viewing mode?"
+    ID_HORIZ_BUTTON         "horiz button"
+    ID_VERT_BUTTON          "VERT BUTTON"
+    ID_TREES_SAVETREEPARAMETERS "ccc"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "pMaker\n\npMaker\n\n\npMaker.Document\npMaker.Document"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "pMaker"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+    ID_FILE_PAGE_SETUP      "Change the printing options\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_LOADMULTIPLECROSS "load two different x-sections"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Zimbabwe) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENW)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_ZIMBABWE
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WHICH_BRANCH_DIALOG1 DIALOG 0, 0, 112, 134
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tree Branch (save as)"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,29,37,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,28,54,50,14
+    CONTROL         "LEFT",IDC_RADIO_LEFT,"Button",BS_AUTORADIOBUTTON,16,15,33,10
+    CONTROL         "RIGHT",IDC_RADIO_RIGHT,"Button",BS_AUTORADIOBUTTON,54,15,39,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_WHICH_BRANCH_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 105
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 127
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (Zimbabwe) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\pMaker.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#include "afxprint.rc"       // printing/print preview resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,21 @@
+
+rightFilename:   C:\3000 ArtProjects\048 Austin\tree\test_right.ldf
+                    leftFilename:    C:\3000 ArtProjects\048 Austin\tree\test_left.ldf
+                    leftABRatio:     0.740000
+                    rightABRatio:    0.740000
+                    numLevels:       7
+                    infl-dir:        180.000000
+                    use-cent-scale:  1
+                    use-thk:         0
+                    use-rot:         1
+                    use-infl:        1
+                    use-infl-type:   0
+Level 0	LCentSc: 0.900000	RCentSc: 0.900000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.250000 		RThick: 0.250000 		LInfl: 0.500000 		RInfl: 0.200000
+Level 1	LCentSc: 1.000000	RCentSc: 1.000000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.250000 		RThick: 0.250000 		LInfl: 0.500000 		RInfl: 0.200000
+Level 2	LCentSc: 1.100000	RCentSc: 1.100000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.187500 		RThick: 0.187500 		LInfl: 0.500000 		RInfl: 0.200000
+Level 3	LCentSc: 1.200000	RCentSc: 1.200000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.187500 		RThick: 0.187500 		LInfl: 0.500000 		RInfl: 0.200000
+Level 4	LCentSc: 1.300000	RCentSc: 1.300000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.187500 		RThick: 0.187500 		LInfl: 0.500000 		RInfl: 0.200000
+Level 5	LCentSc: 1.400000	RCentSc: 1.400000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.120000 		RThick: 0.120000 		LInfl: 0.500000 		RInfl: 0.200000
+Level 6	LCentSc: 1.700000	RCentSc: 1.700000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.120000 		RThick: 0.120000 		LInfl: 0.500000 		RInfl: 0.200000
+Level 7	LCentSc: 1.700000	RCentSc: 1.700000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.120000 		RThick: 0.120000 		LInfl: 0.500000 		RInfl: 0.200000
+Level 8	LCentSc: 1.700000	RCentSc: 1.700000	LRot: 60.000000		RRot: 60.000000 		LThick: 0.120000 		RThick: 0.120000 		LInfl: 0.500000 		RInfl: 0.200000
