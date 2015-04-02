@@ -61,7 +61,7 @@ void FractalTreeMaker::MakeTree(SoSeparator * baseNode, FractalTreeSpec * fts)
     fTreeRoot->addChild(info);
         
     // pass the FractalTreeSpec to Influence
-    fInfluence = new Influence(fts);
+    // fInfluence = new Influence(fts);
     fExtruder = new Extruder();
     int level = 0;
     SbMatrix placement;
@@ -88,7 +88,7 @@ void FractalTreeMaker::ConstructTreeRecursively(SoSeparator * branchRoot, SbMatr
     //     put it at the tip of the last branch (rotation + translation)
     //     (are calculated from the last two points in the previous branch.
     //     but it may be better to multiply the incoming matrix?...
-
+	//TRACE("ctr: level = %d       scale = %f\n", level, scale);
     sNumBranches++;
     SoSeparator * branch_sep = new SoSeparator;
     char node_name[1000];
@@ -105,7 +105,8 @@ void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SbMatri
     // get the branch scale for left or right...
     SbMatrix  centerline_scale_matrix  =  fts->getCenterlineScaleMatrix(isLeft, level);
     SbMatrix  fractal_scale_matrix     =  fts->getFractalScaleMatrix(isLeft, level); 
-    
+    //Inspect::Matrix("FTM::MakeBranch -- centerline scale matrix\n", centerline_scale_matrix);
+	//Inspect::Matrix("FTM::MakeBranch -- fractal_scale_matrix\n", fractal_scale_matrix);
     // create some new persistent objects with unique names...
     SoCoordinate3  * branch_centerline_coords = new SoCoordinate3;  // the centerline that gets modified
     SoLineSet      * branch_line              = new SoLineSet;
@@ -124,8 +125,8 @@ void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SbMatri
     this->transformCoords(branch_centerline_coords, placement);  
 
     // now apply the Influence...
-    if(fts->fUseInfluence == true && fInfluence != NULL)
-         fInfluence->influence_coords(isLeft, branch_centerline_coords, level);
+    // if(fts->fUseInfluence == true && fInfluence != NULL)
+    //     fInfluence->influence_coords(isLeft, branch_centerline_coords, level);
 
     // because the coords are currently at their ultimate positions:
     // find the transform describing the beginning position of the next branch...
@@ -168,9 +169,9 @@ void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SbMatri
     // alternating colors for extrusions...
     SoMaterial * levelMaterial = new SoMaterial;
     levelMaterial->shininess.setValue(.9);
-    levelMaterial->diffuseColor.setValue(SbColor(.85, .82, .82));
+    levelMaterial->diffuseColor.setValue(SbColor(.95, .62, .62));
     if ( level % 2 == 0 )
-        levelMaterial->diffuseColor.setValue(SbColor(.70, .72, .72));
+        levelMaterial->diffuseColor.setValue(SbColor(.50, .52, .72));
     branch_sep->addChild(levelMaterial);
     float thickness = 0.0;
     if (fts->fUseThickness)
@@ -180,7 +181,8 @@ void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SbMatri
     bool flatten = FALSE;
     if (TRUE == isLeft) {
         branch_sep->addChild(fExtruder->extrude_fractal(fts->fShapeCoords, branch_centerline_coords, fts->fLeftHScaleCoords, fts->fLeftVScaleCoords, fts->fLeftTwistCoords, fts->getFractalScale(isLeft, level), thickness, false ));
-    } else {
+        //branch_sep->addChild(fExtruder->extrude(fts->fShapeCoords, branch_centerline_coords, fts->fLeftHScaleCoords, fts->fLeftVScaleCoords, fts->fLeftTwistCoords,false ));
+	} else {
         branch_sep->addChild(fExtruder->extrude_fractal(fts->fShapeCoords, branch_centerline_coords, fts->fRightHScaleCoords, fts->fRightVScaleCoords, fts->fRightTwistCoords, fts->getFractalScale(isLeft, level), thickness, false ));
     }
     // now make the next branch...

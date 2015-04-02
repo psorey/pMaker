@@ -14,6 +14,8 @@
 #include "FractalTreeSpec.h"
 #include <Inventor/SbLinear.h>
 
+#include <Inspect.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -106,6 +108,7 @@ FractalTreeSpec::FractalTreeSpec(
 
     for (int i = 0; i < 9; i++) {
         fLCentScale[i]     = leftCenterlineScale[i];
+		//TRACE("fLCentScale[%d] = %f\n", i, fLCentScale[i]); 
         fRCentScale[i]     = rightCenterlineScale[i];
         fLThick[i]         = leftThickness[i];
         fRThick[i]         = rightThickness[i];
@@ -169,12 +172,13 @@ SbMatrix  FractalTreeSpec::getCenterlineScaleMatrix(bool isLeft, int level)
 
 float  FractalTreeSpec::getFractalScale(bool isLeft, int level)
 {
-    if(isLeft)
-        //return (pow(fLeftABRatio, level));
-        return fLeftABRatio;
-    else
-        //return (pow(fRightABRatio, level));
-        return fRightABRatio;
+    if(isLeft){
+        return (pow(fLeftABRatio, level));
+       // return fLeftABRatio;
+	}else{
+        return (pow(fRightABRatio, level));
+       // return fRightABRatio;
+	}
 }
 
 
@@ -182,10 +186,18 @@ SbMatrix  FractalTreeSpec::getFractalScaleMatrix(bool isLeft, int level)
 {
     SbMatrix fractal_scale_matrix;
     fractal_scale_matrix.makeIdentity();
-    if(isLeft)
+	//TRACE("ratio of level[%d] = %f\n", level, pow(fLeftABRatio, level));
+    //Inspect::Matrix("before set scale", fractal_scale_matrix);
+
+    if(isLeft) {
+
         fractal_scale_matrix.setScale(pow(fLeftABRatio, level));
-    else
+	}else{
         fractal_scale_matrix.setScale(pow(fRightABRatio, level));
+	}
+
+    //Inspect::Matrix("after set scale", fractal_scale_matrix);
+
     return fractal_scale_matrix;
 }
 
@@ -259,9 +271,11 @@ float FractalTreeSpec::getInfluenceDirection()
 CString FractalTreeSpec::listSpecs(CString filename)
 {
     FILE * fp = fopen(filename,"w");
+	fUseInfluenceType = 0; // !!! this is not being initiated elsewhere...
     CString returnString = "";
     char str[10000];
-    sprintf(str,   "rightFilename:   %s\n\
+    sprintf(str,   "FractalTreeSpec: \n\n\
+                    rightFilename:   %s\n\
                     leftFilename:    %s\n\
                     leftABRatio:     %f\n\
                     rightABRatio:    %f\n\
@@ -304,6 +318,7 @@ CString FractalTreeSpec::listSpecs(CString filename)
 
 void FractalTreeSpec::copyValues(FractalTreeSpec * fts)
 {
+	// TRACE("FractalTreeSpec::copy values\n");
     fLeftABRatio          = fts->fLeftABRatio;
     fRightABRatio         = fts->fRightABRatio;
     fNumLevels            = fts->fNumLevels;
@@ -321,6 +336,7 @@ void FractalTreeSpec::copyValues(FractalTreeSpec * fts)
 
     for (int i = 0; i < 9; i++) {
         fLCentScale[i]     = fts->fLCentScale[i];
+		//TRACE("FractalTreeSpec::fLCentScale[%d] = %f\n", i, fLCentScale[i]);
         fRCentScale[i]     = fts->fRCentScale[i];
         fLThick[i]         = fts->fLThick[i];
         fRThick[i]         = fts->fRThick[i];
@@ -410,6 +426,7 @@ void FractalTreeSpec::Serialize( CArchive& archive )
     // call base class function first 
     // base class is CObject in this case
     CObject::Serialize( archive );
+	//TRACE("archive is storing = %d\n", archive.IsStoring());
 
     // now do the stuff for our specific class 
     if( archive.IsStoring() ) {
@@ -429,6 +446,7 @@ void FractalTreeSpec::Serialize( CArchive& archive )
                 >> fRThick[i]  >>  fLRot[i] >>  fRRot[i]  >> fLInfl[i]  >> fRInfl[i];
         }
     }
+	//TRACE("fLCentScale[0] = %f\n", fLCentScale[0]);
 }
 
  

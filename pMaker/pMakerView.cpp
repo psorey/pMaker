@@ -1909,8 +1909,18 @@ float    rightInfluence[MAX_LEVELS]       = { 1,     1,    1,     1,     1,    1
 
 FractalTreeSpec * saved_tree_spec = NULL;  // global!! we use this to retain values between tree generations
 
+void CpMakerView::OnLoadTreeSpecFile()
+{
+    CString filename = GetFilename(".fts", "*.fts", "Load a Fractal Tree Spec...");
+    CFile theFile;
+    theFile.Open(_T(filename), CFile::modeRead );
+    CArchive archive(&theFile, CArchive::load);
+    saved_tree_spec->Serialize(archive);
+    archive.Close();
+    theFile.Close();
+}
 
-void CpMakerView::OnTreesTestTree() // make fractal tree...
+void CpMakerView::OnTreesTestTree() // menu: TREES/MAKE TREES    make fractal tree...
 {
     this->treeRoot->removeAllChildren();
 
@@ -1920,12 +1930,42 @@ void CpMakerView::OnTreesTestTree() // make fractal tree...
     if(saved_tree_spec == NULL) {
         saved_tree_spec = new FractalTreeSpec();
         this->OnLoadTreeSpecFile();
+		//TRACE("loaded tree spec file\n");
     }
     
     // else we already have a saved_tree_spec...
     fFractalTreeSpec->copyValues(saved_tree_spec);
 
     FractalTreeDialog ftdlg;
+
+//	TRACE("saved_tree_spec: value = %f\n",saved_tree_spec->fLCentScale[0]);
+//	TRACE("fFractalTreeSpec: value = %f\n",fFractalTreeSpec->fLCentScale[0]);
+    ftdlg.fRightFilename        = fFractalTreeSpec->fRightFilename;
+    ftdlg.fNumLevels            = fFractalTreeSpec->fNumLevels;
+    ftdlg.fLeftABRatio          = fFractalTreeSpec->fLeftABRatio;
+    ftdlg.fRightABRatio         = fFractalTreeSpec->fRightABRatio;
+    ftdlg.fUseCenterlineScale   = fFractalTreeSpec->fUseCenterlineScale;
+    ftdlg.fUseThickness         = fFractalTreeSpec->fUseThickness;
+    ftdlg.fUseInfluence         = fFractalTreeSpec->fUseInfluence; 
+    ftdlg.fUseRot               = fFractalTreeSpec->fUseRotation;
+    ftdlg.fInfluenceDirection   = fFractalTreeSpec->fInfluenceDirection;
+    ftdlg.fUseSpiralEffect      = fFractalTreeSpec->fUseSpiralEffect;
+    ftdlg.fUseLinearEffect      = fFractalTreeSpec->fUseLinearEffect;
+    ftdlg.fUseExponentialEffect = fFractalTreeSpec->fUseExponentialEffect;
+    ftdlg.fFractalTreeSpec      = fFractalTreeSpec;
+
+	//TRACE("PMakerView::before changes: %f\n", fFractalTreeSpec->fLCentScale[0]);
+	for(int i = 0; i < 9; i++) {
+        ftdlg.fLCentScale[i]    = fFractalTreeSpec->fLCentScale[i];
+        ftdlg.fRCentScale[i]    = fFractalTreeSpec->fRCentScale[i];
+        ftdlg.fLThick[i]        = fFractalTreeSpec->fLThick[i];
+        ftdlg.fRThick[i]        = fFractalTreeSpec->fRThick[i];
+        ftdlg.fLRot[i]          = fFractalTreeSpec->fLRot[i];
+        ftdlg.fRRot[i]          = fFractalTreeSpec->fRRot[i];
+        ftdlg.fLInfl[i]         = fFractalTreeSpec->fLInfl[i];
+        ftdlg.fRInfl[i]         = fFractalTreeSpec->fRInfl[i];
+    }
+
 
     ftdlg.fLeftFilename         = fFractalTreeSpec->fLeftFilename;
     ftdlg.fRightFilename        = fFractalTreeSpec->fRightFilename;
@@ -1942,7 +1982,8 @@ void CpMakerView::OnTreesTestTree() // make fractal tree...
     ftdlg.fUseExponentialEffect = fFractalTreeSpec->fUseExponentialEffect;
     ftdlg.fFractalTreeSpec      = fFractalTreeSpec;
 
-    for(int i = 0; i < 9; i++) {
+	//TRACE("PMakerView::after changes: %f\n", fFractalTreeSpec->fLCentScale[0]);
+	for(int i = 0; i < 9; i++) {
         ftdlg.fLCentScale[i]    = fFractalTreeSpec->fLCentScale[i];
         ftdlg.fRCentScale[i]    = fFractalTreeSpec->fRCentScale[i];
         ftdlg.fLThick[i]        = fFractalTreeSpec->fLThick[i];
@@ -1979,6 +2020,7 @@ void CpMakerView::OnTreesTestTree() // make fractal tree...
             fFractalTreeSpec->fLInfl[i]         = ftdlg.fLInfl[i];
             fFractalTreeSpec->fRInfl[i]         = ftdlg.fRInfl[i];
         } 
+		//TRACE("after changes: %f\n", fFractalTreeSpec->fLCentScale[0]);
         // read all the SoCoordinat3 sets from file...
         // currently shapeCoords are same for left and right!
         ReadLDF(fFractalTreeSpec->fLeftFilename, 
@@ -1996,7 +2038,8 @@ void CpMakerView::OnTreesTestTree() // make fractal tree...
                 fFractalTreeSpec->fRightTwistCoords);
         
         saved_tree_spec->copyValues(fFractalTreeSpec);
-
+		//TRACE("saved_tree_spec should reflect new %f\n", saved_tree_spec->fLCentScale[0]);
+		//fFractalTreeSpec->listSpecs("c:\\my_specs.txt");
         // generate the tree...
         FractalTreeMaker treeMaker(treeRoot, fFractalTreeSpec);
         treeMaker.MakeTree( treeRoot, fFractalTreeSpec);
@@ -2109,16 +2152,6 @@ void CpMakerView::OnFileSaveAs()
 }
 
 
-void CpMakerView::OnLoadTreeSpecFile()
-{
-    CString filename = GetFilename(".fts", "*.fts", "Load a Fractal Tree Spec...");
-    CFile theFile;
-    theFile.Open(_T(filename), CFile::modeRead );
-    CArchive archive(&theFile, CArchive::load);
-    saved_tree_spec->Serialize(archive);
-    archive.Close();
-    theFile.Close();
-}
 
 void CpMakerView::OnFlatten() //
 {

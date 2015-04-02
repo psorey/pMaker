@@ -155,7 +155,7 @@ BEGIN_MESSAGE_MAP(FractalTreeDialog, CDialog)
     ON_BN_CLICKED(IDC_BROWSE_BRANCH2, &FractalTreeDialog::OnBnClickedBrowseBranch2)
     ON_EN_CHANGE(IDC_FACTOR_EDIT,     &FractalTreeDialog::OnEnChangeFactorEdit)
     ON_BN_CLICKED(IDC_BROWSE_BRANCH3, &FractalTreeDialog::OnBnClickedBrowseBranch3)
-    ON_BN_CLICKED(IDC_BUTTON1, &FractalTreeDialog::OnBnClickedButton1)
+    ON_BN_CLICKED(IDC_BUTTON1, &FractalTreeDialog::OnBnClickedButton1) // load file
     ON_BN_CLICKED(IDC_BUTTON2, &FractalTreeDialog::OnSaveFractalTreeSpec)
 	ON_EN_CHANGE(IDC_LSCALE_1, &FractalTreeDialog::OnEnChangeLscale1)
 	ON_EN_CHANGE(IDC_LSCALE_2, &FractalTreeDialog::OnEnChangeLscale2)
@@ -193,6 +193,11 @@ BEGIN_MESSAGE_MAP(FractalTreeDialog, CDialog)
 	ON_EN_CHANGE(IDC_RTHICK_7, &FractalTreeDialog::OnEnChangeRthick7)
 	ON_EN_CHANGE(IDC_RTHICK_8, &FractalTreeDialog::OnEnChangeRthick8)
 	ON_EN_CHANGE(IDC_RTHICK_9, &FractalTreeDialog::OnEnChangeRthick9)
+	ON_EN_CHANGE(IDC_LEFT_ABR, &FractalTreeDialog::OnEnChangeLeftAbr)
+	ON_EN_CHANGE(IDC_RIGHT_ABR, &FractalTreeDialog::OnEnChangeRightAbr)
+	ON_EN_CHANGE(IDC_NUM_LEVELS, &FractalTreeDialog::OnEnChangeNumLevels)
+	ON_EN_CHANGE(IDC_LEFT_BRANCH, &FractalTreeDialog::OnEnChangeLeftBranch)
+	ON_EN_CHANGE(IDC_EDIT8, &FractalTreeDialog::OnEnChangeEdit8)
 END_MESSAGE_MAP()
 
 
@@ -287,6 +292,7 @@ CString FractalTreeDialog::GetFilename(CString def_extension, CString wildcard, 
 
 void FractalTreeDialog::OnSaveFractalTreeSpec()
 {
+		TRACE("saving 2 file...\n");
     CString filename = this->GetFilename(".fts", "*.fts", "Save the Fractal Tree Spec...");
     CFile theFile;
     theFile.Open(_T(filename), CFile::modeCreate | CFile::modeWrite);
@@ -299,7 +305,7 @@ void FractalTreeDialog::OnSaveFractalTreeSpec()
 
 void FractalTreeDialog::OnBnClickedButton1()
 {
-	TRACE("saving file...\n");
+	TRACE("loading file...\n");
     CString filename = this->GetFilename(".fts", "*.fts", "Load a Fractal Tree Spec...");
     CFile theFile;
     theFile.Open(_T(filename), CFile::modeRead );
@@ -312,110 +318,131 @@ void FractalTreeDialog::OnBnClickedButton1()
 void FractalTreeDialog::OnEnChangeLscale1()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fLCentScale[0] = fLCentScale[0];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale2()
 {
-  UpdateData(TRUE);
+    UpdateData(TRUE);	
+    fFractalTreeSpec->fLCentScale[1] = fLCentScale[1];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale3()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fLCentScale[2] = fLCentScale[2];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale4()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fLCentScale[3] = fLCentScale[3];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale5()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fLCentScale[4] = fLCentScale[4];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale6()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fLCentScale[6] = fLCentScale[5];
 }
 
 
 void FractalTreeDialog::OnEnChangeLscale7()
 {
   UpdateData(TRUE);
-}
-/*
+      fFractalTreeSpec->fLCentScale[6] = fLCentScale[6];}
+
 void FractalTreeDialog::OnEnChangeLscale8()
 {
   UpdateData(TRUE);
-}
-*/
+      fFractalTreeSpec->fLCentScale[7] = fLCentScale[7];}
+
 
 void FractalTreeDialog::OnEnChangeLscale9()
 {
   UpdateData(TRUE);
+  fFractalTreeSpec->fLCentScale[8] = fLCentScale[8];
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale1()
 {
-  UpdateData(TRUE);
+  UpdateData(TRUE); 
+    fFractalTreeSpec->fRCentScale[0] = fRCentScale[0];
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale2()
 {
   UpdateData(TRUE);
+    fFractalTreeSpec->fRCentScale[1] = fRCentScale[1];
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale3()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fRCentScale[2] = fRCentScale[2];
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale4()
 {
   UpdateData(TRUE);
+      fFractalTreeSpec->fRCentScale[3] = fRCentScale[3];
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale5()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fRCentScale[4] = fRCentScale[4];
+
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale6()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fRCentScale[5] = fRCentScale[5];
+
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale7()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fRCentScale[6] = fRCentScale[6];
+
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale8()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fRCentScale[7] = fRCentScale[7];
+
 }
 
 
 void FractalTreeDialog::OnEnChangeRscale9()
 {
   UpdateData(TRUE);
+        fFractalTreeSpec->fRCentScale[8] = fRCentScale[8];
+
 }
 
-/*
+
 void FractalTreeDialog::OnEnChangeLthick1()
 {
   UpdateData(TRUE);
@@ -437,7 +464,7 @@ void FractalTreeDialog::OnEnChangeLthick3()
 void FractalTreeDialog::OnEnChangeLthick4()
 {
   UpdateData(TRUE);
-
+}
 
 void FractalTreeDialog::OnEnChangeLthick5()
 {
@@ -521,4 +548,38 @@ void FractalTreeDialog::OnEnChangeRthick9()
 {
   UpdateData(TRUE);
 }
-*/
+
+
+void FractalTreeDialog::OnEnChangeLeftAbr()
+{
+    UpdateData(TRUE);
+    fFractalTreeSpec->fLeftABRatio = fLeftABRatio;
+}
+
+
+void FractalTreeDialog::OnEnChangeRightAbr()
+{
+    UpdateData(TRUE);
+    fFractalTreeSpec->fRightABRatio = fRightABRatio;
+}
+
+
+void FractalTreeDialog::OnEnChangeNumLevels()
+{
+	UpdateData(TRUE);
+    fFractalTreeSpec->fNumLevels = fNumLevels;
+}
+
+
+void FractalTreeDialog::OnEnChangeLeftBranch()
+{
+	UpdateData(TRUE);
+    fFractalTreeSpec->fLeftFilename = fLeftFilename;
+}
+
+
+void FractalTreeDialog::OnEnChangeEdit8()  // change Right Filename
+{
+	UpdateData(TRUE);
+    fFractalTreeSpec->fRightFilename = fRightFilename;
+}

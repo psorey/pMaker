@@ -96,4 +96,9 @@ public:
 	afx_msg void OnEnChangeRthick7();
 	afx_msg void OnEnChangeRthick8();
 	afx_msg void OnEnChangeRthick9();
+	afx_msg void OnEnChangeLeftAbr();
+	afx_msg void OnEnChangeRightAbr();
+	afx_msg void OnEnChangeNumLevels();
+	afx_msg void OnEnChangeLeftBranch();
+	afx_msg void OnEnChangeEdit8();
 };

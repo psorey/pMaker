@@ -76,7 +76,9 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
-
+	TRACE("Extrude:\n");
+	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
+	//Inspect::Coordinate3("fVScaleCoords", fVScaleCoords);
     if(TRUE == flatten) 
          Flattener::flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
 
@@ -109,6 +111,10 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     fTwistCoords     = twistCoords;     //
     fFractalScale    = fractal_scale;   //
     fThickness       = thickness;       //
+   // TRACE("Extrude::extrude_fractal\n");
+	//TRACE("fFractal_scale = %f\n", fFractalScale);
+	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
+	//Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
 
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
@@ -149,13 +155,13 @@ SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_
     int jj = 0;
     int count = 0;    
     for( jj = 1; jj < numPathVertices + 1; jj++ ) {
-        TRACE("jj = %d\n", jj);
+      //  TRACE("jj = %d\n", jj);
         //int limit = 2 * numShapeVertices;
         int limit = numShapeVertices;
-        TRACE("limit = %d\n", limit);
+      //  TRACE("limit = %d\n", limit);
 
         for (ii = jj - 1; ii < limit; ii++) {
-            TRACE("jj = %d   i = %d\n", jj, ii);
+      //      TRACE("jj = %d   i = %d\n", jj, ii);
             fLoftFaces->coordIndex.set1Value(count++, ii);
             fLoftFaces->coordIndex.set1Value(count++, ii + 1);
             fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices);

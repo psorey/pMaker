@@ -1,13 +1,7 @@
- *.ncb
- *.sdf
-_UpgradeReport_Files/
-debug/
-Backup
-ipch
-TestResults
+
 
 # ignore objects and archives, anywhere in the tree.
-*.[oa]
+**/*.[oa]
 
 # Compiled source #
 ###################
@@ -17,3 +11,15 @@ TestResults
 *.exe
 *.o
 *.so 
+
+# msvc++:
+**/*.spd
+**/*.opensdf
+*.ncb
+*.sdf
+_UpgradeReport_Files/
+debug/
+Backup
+ipch
+TestResults
+
