@@ -99,13 +99,14 @@ public:
 	SoTransformBoxManip*	fTransformBox;
 	SoSeparator*			loftRoot;
     SoSeparator*            treeRoot;
-	SoCoordinate3*			loftCoords;         /// not using these three
-	SoIndexedFaceSet*		loftFaces;          ///
-	SoMaterial*				loftMaterial;       ///
-	SoCoordinate3*			loftPathCoords; 
-	SoCoordinate3*			loftScaleCoords;    /// combined vertCoords and horizCoords;
-    SoCoordinate3*          loftScale2Coords;   /// for 2nd level scaling
-    SoCoordinate3*          loftScale2Center;
+//	SoCoordinate3*			loftCoords;         /// not using these three
+//	SoIndexedFaceSet*		loftFaces;          ///
+//	SoMaterial*				loftMaterial;       ///
+//	SoCoordinate3*			loftPathCoords; 
+//	SoCoordinate3*			loftScaleCoords;    /// combined vertCoords and horizCoords;
+//  SoCoordinate3*          loftScale2Coords;   /// for 2nd level scaling
+//  SoCoordinate3*          loftScale2Center;
+
 	SoSeparator*			backgroundSep;
     bool                    fSearchBackground;
     SoTransform*            fScreenTransform;
@@ -237,6 +238,7 @@ public:
 
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+	afx_msg void OnFileExtrudealongmultiplelines();
 };
 
 #ifndef _DEBUG  // debug version in pMakerView.cpp

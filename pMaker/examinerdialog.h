@@ -57,10 +57,7 @@ public:
 	
 	int H_SCALE, V_SCALE;
 
-	static void		mouseMoved(void *, SoEventCallback *);
-	static void		keyPress(void *, SoEventCallback *);
-	static void		setButtonDown(void *, SoEventCallback *);
-	static void		setButtonUp(void *, SoEventCallback *eventCB);
+
     static void		viewerCB(void *, void *);
 	static void		sensorCB(void*, SoSensor*);
 

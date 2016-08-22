@@ -7,7 +7,7 @@
 
 class CProadView;
 class CProadDoc;
-class CIvfComponent;
+//class CIvfComponent;
 class CurveManip;
 
 class Interface{

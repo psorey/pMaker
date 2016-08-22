@@ -19,65 +19,8 @@
 #include <Inventor/actions/SoWriteAction.h>
 
 
-// currently using this one...
-void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords, CString filename) 
-{
-	SoCoordinate3* flatCoords = new SoCoordinate3;
-	flatCoords->ref();
-	
-	SoSeparator* tempSep = new SoSeparator;
-	tempSep->ref();
-    SoCoordinate3 *newCoords = new SoCoordinate3;
-	tempSep->addChild(newCoords);
-	SoLineSet *newLines = new SoLineSet;
-	tempSep->addChild(newLines);
-	
-    int indexCount = 0;
-	int index;
-    // bool fClosedShape = false; // we're always treating it as a n-sided extrusion, not necessarily closed
 
-	FILE* fp = fopen(filename, "w");
-	WriteDXF * writeDXF = new WriteDXF(fp); // opens the file and writes the begin section
-    writeDXF->WriteBeginDXF();
-
-	for(int j = 0; j < numSides; j++) {
-        int count = 0;
-        TRACE("count = %d\n", count);
-
-		newCoords->point.deleteValues(0);
-		flatCoords->point.deleteValues(0);
-		for ( int k = j; k < loftCoords->point.getNum() - 1; k += (numSides + 1)) {
-            //TRACE("k =  %d\n", k);
-			newCoords->point.set1Value(count++, loftCoords->point[k]);
-			newCoords->point.set1Value(count++, loftCoords->point[k + 1]);
-		}
-
-		flatten(newCoords, flatCoords);  
-
-		int numVertices = flatCoords->point.getNum();
-		char layer[4];
-		_itoa( j, layer, 10);
-
-        writeDXF->WriteLWPOLYLINEHeader(layer, numVertices); 
-		for (int i = 0; i < numVertices; i+= 2) {		
-			SbVec3f point = flatCoords->point[i];
-            writeDXF->WriteLWPOLYLINEPoint(point);
-		}
-		// for (int i = numVertices - 2; i > 0; i -= 2) {
-		for (int i = numVertices - 1; i > 0; i -= 2) {
-			SbVec3f point = flatCoords->point[i];
-            writeDXF->WriteLWPOLYLINEPoint(point);
-		}
-        writeDXF->WriteZero();
-	}
-    writeDXF->WriteDXFEndsec();
-    writeDXF->WriteEndDXF();
-	fclose(fp);
-	tempSep->unref();
-	flatCoords->unref();
-}
-
-///////// * Using this one exclusively? * ///////////
+///////// * Using this one  * ///////////
 void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords) 
 {
 	// create new DXF file for flattened sides...
@@ -111,7 +54,6 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	
     int indexCount = 0;
 	int index;
-    // bool fClosedShape = false; // we always treat it as a n-sided extrusion, not necessarily closed.
 
 	FILE* fp = fopen(m_strAddFile, "w");
     if(fp == NULL) return;
@@ -162,6 +104,62 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	tempSep->unref();
 	flatCoords->unref();
 }	
+
+// not using this one:
+void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords, CString filename) 
+{
+	SoCoordinate3* flatCoords = new SoCoordinate3;
+	flatCoords->ref();
+	SoSeparator* tempSep = new SoSeparator;
+	tempSep->ref();
+    SoCoordinate3 *newCoords = new SoCoordinate3;
+	tempSep->addChild(newCoords);
+	SoLineSet *newLines = new SoLineSet;
+	tempSep->addChild(newLines);
+	
+    int indexCount = 0;
+	int index;
+    // bool fClosedShape = false; // we treat it as a n-sided extrusion, not necessarily closed
+
+	FILE* fp = fopen(filename, "w");
+	WriteDXF * writeDXF = new WriteDXF(fp); // opens the file and writes the begin section
+    writeDXF->WriteBeginDXF();
+
+	for(int j = 0; j < numSides; j++) {
+        int count = 0;
+        TRACE("count = %d\n", count);
+
+		newCoords->point.deleteValues(0);
+		flatCoords->point.deleteValues(0);
+		for ( int k = j; k < loftCoords->point.getNum() - 1; k += (numSides + 1)) {
+            //TRACE("k =  %d\n", k);
+			newCoords->point.set1Value(count++, loftCoords->point[k]);
+			newCoords->point.set1Value(count++, loftCoords->point[k + 1]);
+		}
+		flatten(newCoords, flatCoords);  
+
+		int numVertices = flatCoords->point.getNum();
+		char layer[10];
+		_itoa( j, layer, 10);
+
+        writeDXF->WriteLWPOLYLINEHeader(layer, numVertices); 
+		for (int i = 0; i < numVertices; i+= 2) {		
+			SbVec3f point = flatCoords->point[i];
+            writeDXF->WriteLWPOLYLINEPoint(point);
+		}
+		// for (int i = numVertices - 2; i > 0; i -= 2) {
+		for (int i = numVertices - 1; i > 0; i -= 2) {
+			SbVec3f point = flatCoords->point[i];
+            writeDXF->WriteLWPOLYLINEPoint(point);
+		}
+        writeDXF->WriteZero();
+	}
+    writeDXF->WriteDXFEndsec();
+    writeDXF->WriteEndDXF();
+	fclose(fp);
+	tempSep->unref();
+	flatCoords->unref();
+}
 
 
 void Flattener::flatten_quadrilaterals(SoCoordinate3 * loftCoords, int numSides, int numPathCoords)  // quadrilaterals
@@ -296,6 +294,7 @@ void Flattener::flatten (SoCoordinate3* inCoords, SoCoordinate3* flatCoords)
 	int flatCount = 0;
 	double angle1;
 	double angle2;
+
 	x1 = inCoords->point[0][0];
 	y1 = inCoords->point[0][1];
 	z1 = inCoords->point[0][2];
@@ -390,7 +389,6 @@ void Flattener::flatten (SoCoordinate3* inCoords, SoCoordinate3* flatCoords)
     // hack workaround -- why does it make an extra value?
     int start = flatCoords->point.getNum() -1;
     flatCoords->point.deleteValues(start, -1);
-	
     return;
 }
 

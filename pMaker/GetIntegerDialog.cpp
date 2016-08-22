@@ -91,8 +91,8 @@ void CGetIntegerDialog::OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult)
 
 	// fix out of range errors...
 	if(fInteger1 < 0) fInteger1 = 0; 
-	if(fInteger1 >= fMakerView->loftPathCoords->point.getNum())
-		fInteger1 = fMakerView->loftPathCoords->point.getNum();
+//	if(fInteger1 >= fMakerView->fExtruder->fLoftPathCoords->point.getNum()) !!!
+//		fInteger1 = fMakerView->fExtruder->fLoftPathCoords->point.getNum(); !!!
 	 
 	 UpdateData(FALSE);
 	*pResult = 0;
@@ -109,8 +109,8 @@ void CGetIntegerDialog::OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult)
 
 	// fix out of range errors...
 	if(fInteger2 < 0) fInteger2 = 0; 
-	if(fInteger2 >= fMakerView->loftPathCoords->point.getNum())
-		fInteger2 = fMakerView->loftPathCoords->point.getNum();	
+//	if(fInteger2 >= fMakerView->fExtruder->fLoftPathCoords->point.getNum())
+//		fInteger2 = fMakerView->fExtruder->fLoftPathCoords->point.getNum();	
 	
 	 UpdateData(FALSE);
 	*pResult = 0;
@@ -122,8 +122,8 @@ void CGetIntegerDialog::OnChangeIntegerEdit()
 	UpdateData(TRUE);
 	// fix out of range errors...
 	if(fInteger1 < 0) fInteger1 = 0; 
-	if(fInteger1 >= fMakerView->loftPathCoords->point.getNum())
-		fInteger1 = fMakerView->loftPathCoords->point.getNum();
+//	if(fInteger1 >= fMakerView->fExtruder->fLoftPathCoords->point.getNum())
+//		fInteger1 = fMakerView->fExtruder->fLoftPathCoords->point.getNum();
 	 
 	UpdateData(FALSE);
 //	fMakerView->makeLoftObject();
@@ -134,8 +134,8 @@ void CGetIntegerDialog::OnChangeIntegerEdit2()
 	UpdateData(TRUE);
 	// fix out of range errors...
 	if(fInteger2 < 0) fInteger2 = 0; 
-	if(fInteger2 >= fMakerView->loftPathCoords->point.getNum())
-		fInteger2 = fMakerView->loftPathCoords->point.getNum();	
+//	if(fInteger2 >= fMakerView->fExtruder->fLoftPathCoords->point.getNum())  //!!!
+//		fInteger2 = fMakerView->fExtruder->fLoftPathCoords->point.getNum();	 // !!!
 	
 	UpdateData(FALSE);
 //	fMakerView->makeLoftObject();

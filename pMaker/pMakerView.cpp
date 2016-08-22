@@ -38,11 +38,13 @@
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/actions/SoToVRML2Action.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/manips/SoTransformBoxManip.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoFont.h>
+#include <Inventor/VRMLnodes/SoVRMLGroup.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/details/SoDetail.h>
 #include <Inventor/details/SoFaceDetail.h>
@@ -122,6 +124,7 @@ BEGIN_MESSAGE_MAP(CpMakerView, CView)
     ON_COMMAND(ID_TREES_LOADTREESPECFROMFILE, &CpMakerView::OnLoadTreeSpecFile)
     ON_COMMAND(ID_FILE_LOADMULTIPLECROSS, &CpMakerView::OnLoadMultSections)
     ON_COMMAND(ID_FILE_SAVE_AS, &CpMakerView::OnFileSaveAs)
+	ON_COMMAND(ID_FILE_EXTRUDEALONGMULTIPLELINES, &CpMakerView::OnFileExtrudealongmultiplelines)
 END_MESSAGE_MAP()
 
 
@@ -143,9 +146,7 @@ CpMakerView::CpMakerView()
     viewer = NULL;
     fFractalTreeSpec = NULL;
     fExtruder = NULL;
-    TRACE("made it here -- constructor\n");
     //SoDB::init();
-
 }
 
 CpMakerView::~CpMakerView()
@@ -160,7 +161,6 @@ CpMakerView::~CpMakerView()
     twistCoords->unref();
     if (root != NULL)               root->unref();
     fTransformBox->unref();
-
 }
 
 BOOL CpMakerView::PreCreateWindow(CREATESTRUCT& cs)
@@ -223,11 +223,11 @@ void CpMakerView::OnDraw(CDC* /*pDC*/)
 
 void CpMakerView::OnInitialUpdate()
 {
-TRACE("made it here -- on_initial_update\n");
+    TRACE("CpMakerView::OnInitialUpdate()\n");
     CpMakerDoc* pDoc = GetDocument();
     ASSERT_VALID(pDoc);
     if (viewer == NULL) {
-        TRACE("made it here too\n");
+        TRACE("first-time init\n");
         viewer = new SoWinExaminerViewer( m_hWnd );;
         viewer->setBackgroundColor(SbColor(.7, .8, .9));
         viewer->setBackgroundColor(SbColor(.1, .1, .1));
@@ -314,29 +314,13 @@ TRACE("made it here -- on_initial_update\n");
     fMultipleSep = new SoSeparator;
     root->addChild(fMultipleSep);
 
-    //loftPathCoords = new SoCoordinate3;
-    //loftPathCoords = new SoCoordinate3;
-    //loftScaleCoords = new SoCoordinate3;
-   // loftScale2Coords = new SoCoordinate3;
-   // loftScale2Center = new SoCoordinate3;
-   // loftScale2Center->point.setValue(SbVec3f(0,0,0));
-
     SoNormalBinding* nBinding = new SoNormalBinding;
     nBinding->value.setValue(SoNormalBinding::PER_FACE);
     root->addChild(nBinding);
-    
-    //SoShapeHints* newHints = new SoShapeHints;
-    //newHints->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
-    //newHints->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
-    //loftRoot->addChild(newHints);
 
     fTransformBox = new SoTransformBoxManip;
     fTransformBox->ref();
 
-    //loftRoot->addChild(loftCoords);
-    //loftRoot->addChild(loftFaces);
-    //loftCoords->point.deleteValues(0);
-    //loftFaces->coordIndex.deleteValues(0);
     backgroundSep = new SoSeparator;   // make background the last node on root
     root->addChild(backgroundSep);
 
@@ -354,9 +338,9 @@ TRACE("made it here -- on_initial_update\n");
         SoLocation2Event::getClassTypeId(),
         mouseMoved, this);
 
-    /*myEventCallback->addEventCallback(
+    /*  myEventCallback->addEventCallback(
        SoLocation2Event::getClassTypeId(),
-       mouseClick, this); */
+       mouseClick, this);   */
     
     fScreenText      = new SoText2;
     fScreenFont      = new SoFont;
@@ -439,21 +423,21 @@ void CpMakerView::OnTwistButton()
 
 void CpMakerView::OnHscaleButton() 
 {
-    // hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, this, FALSE);
+    //  hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, this, FALSE);
     hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, hScaleSplineCoords, this);
     hScaleDlg->Create();
 }
 
 void CpMakerView::OnVscaleButton() 
 {
-    // vScaleDlg = new CExaminerDialog(CString("Vertical Scale Profile"), vScaleCoords, this, FALSE);
+    //  vScaleDlg = new CExaminerDialog(CString("Vertical Scale Profile"), vScaleCoords, this, FALSE);
     vScaleDlg = new CExaminerDialog(CString("Vertical Scale Profile"), vScaleCoords, vScaleSplineCoords, this);
     vScaleDlg->Create();
 }
 
 void CpMakerView::OnThreeDButton() 
 {
-    // threeDDlg = new CExaminerDialog(CString("3d Alignment"), threeDCoords, this, FALSE);
+    //  threeDDlg = new CExaminerDialog(CString("3d Alignment"), threeDCoords, this, FALSE);
     threeDDlg = new CExaminerDialog(CString("3d Alignment"), threeDCoords, threeDSplineCoords, this);
     threeDDlg->Create();
 }
@@ -461,7 +445,7 @@ void CpMakerView::OnThreeDButton()
 void CpMakerView::OnAddBackground() 
 {
     CString filename = this->GetFilename(".iv", "*.iv", "load a background file..."); 
-    if(filename != "") {
+    if(filename != "")  {
         SoInput myInput;
         myInput.openFile(filename);
         SoDrawStyle* style = new SoDrawStyle;
@@ -479,7 +463,6 @@ void CpMakerView::OnAddBackground()
 
 void CpMakerView::OnAddBackgndSolid() 
 {
-
     CString filename = this->GetFilename(".iv", "*.iv", "load a background file..."); 
     if(filename != "") {
         SoInput myInput;
@@ -504,9 +487,11 @@ void CpMakerView::OnDeleteBackground()
 
 void CpMakerView::OnFileDxftoiv() 
 {
+	/*
     ReadDXF readDXF(NULL);
     readDXF.readFile();
-}
+	*/
+	}
 
 void CpMakerView::OnRButtonDblClk(UINT nFlags, CPoint point) 
 {
@@ -527,18 +512,17 @@ bool CpMakerView::isUsingVScale(void)
 
 void CpMakerView::OnShowDialog() // call this to regenerate the extrusion
 {
+	// examiner dialog updates nurbs curve polyline, then:
     this->loftRoot->removeAllChildren();
     SoSeparator * branch_sep;
-    if((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0 < 0.001) {
+    if(abs((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0) < 0.001) {
         branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->hScaleCoords, this->twistCoords, false );
     } else {
         branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, false );
     }
-    //SoSeparator * branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, 1.0, 0.0, false );
     loftRoot->addChild(branch_sep);
     TRACE("OnShowDialog()\n");   
 }
-
 
 
 void CpMakerView::OnSaveLoft() 
@@ -574,7 +558,19 @@ void CpMakerView::OnSaveLoft()
         }
         wa.apply(loftRoot); 
         wa.apply(treeRoot);
-        wa.getOutput()->closeFile();			
+        wa.getOutput()->closeFile();	
+
+      SoToVRML2Action tovrml2;
+      tovrml2.apply(loftRoot);
+      SoVRMLGroup *newroot = tovrml2.getVRML2SceneGraph();
+      newroot->ref();
+      SoOutput out;
+      out.openFile("out.wrl");
+      out.setHeaderString("#VRML V2.0 utf8");
+      SoWriteAction wra(&out);
+      wra.apply(newroot);
+      out.closeFile();
+      newroot->unref();
     }	
 }
 
@@ -649,10 +645,7 @@ void CpMakerView::OnLoadConstructionData()
                                 vScaleCoords,
                                 twistCoords);
     
-    
-    // this->make3dPath();
-    // this->makeLoftObject();
-    loftRoot->removeAllChildren();  
+    loftRoot->removeAllChildren();
     if((vScaleCoords->point[0] - vScaleCoords->point[vScaleCoords->point.getNum() -1]).length() - 1.0 < 0.001) {
         loftRoot->addChild(fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, hScaleCoords, twistCoords, false));
     } else {
@@ -696,303 +689,7 @@ CpMakerView::dist (SbVec3f pt1, SbVec3f pt2)
           +(pt2[1] - pt1[1])*(pt2[1] - pt1[1]));
     return distance;
 }
-/*
-//#ifdef USE_LOCAL_EXTRUDER
-/////////////////////////////////////////////////////////////////////////////////////
-// for flattening shapes...
 
-void CpMakerView::OnFlatten() //quadrilaterals
-{
-    if((vScaleCoords->point[0] - vScaleCoords->point[vScaleCoords->point.getNum() -1]).length() - 1.0 < 0.001) {
-        (fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, hScaleCoords, twistCoords, true));
-        TRACE("OnFlatten()\nusing hscale only\n");
-    } else {
-        (fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, vScaleCoords, twistCoords, true));
-        TRACE("OnFlatten()\nusing vscale & hscale\n");
-    }
-    return;
-}
-
-double CpMakerView::GetVectorAngle(double a1, double a2, double a3, double b1, double b2, double b3)
-{
-    double lengthA  = sqrt( (a1 * a1) + (a2 * a2) + (a3 * a3) ); 	
-    double lengthB  = sqrt( (b1 * b1) + (b2 * b2) + (b3 * b3) ); 	
-    double dotAB    = a1 * b1 + a2 * b2 + a3 * b3;
-    double cosAngle = dotAB / (lengthA * lengthB);
-    double angle    = acos(cosAngle);
-    return angle;
-}
-
-
-void CpMakerView::flatten (SoCoordinate3* tdCoords, SoCoordinate3* flatCoords)
-{                     
-    const double kPI = 3.1415926535897932384626433832795;
-    double xplot1, xplot2, xplot3;
-    double yplot1, yplot2, yplot3, yplot4;
-    double side3;
-    double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-    double ang1, ang2, angA, angB;
-    double r;
-
-    xplot1 = 0.0;
-    yplot1 = 0.0;
-    
-    int flatCount = 0;
-
-    double angle1;
-    double angle2;
-
-    x1 = tdCoords->point[0][0];
-    y1 = tdCoords->point[0][1];
-    z1 = tdCoords->point[0][2];
-    
-    x2 = tdCoords->point[1][0];
-    y2 = tdCoords->point[1][1];
-    z2 = tdCoords->point[1][2];
-    
-    x3 = tdCoords->point[2][0];
-    y3 = tdCoords->point[2][1];
-    z3 = tdCoords->point[2][2];
-
-    x4 = tdCoords->point[3][0];
-    y4 = tdCoords->point[3][1];
-    z4 = tdCoords->point[3][2];
-    
-    double a1 = x1 - x2;
-    double a2 = y1 - y2;
-    double a3 = z1 - z2;
-    double b1 = x3 - x2;
-    double b2 = y3 - y2;
-    double b3 = z3 - z2;
-    
-    angle2 = GetVectorAngle(a1, a2, a3, b1, b2, b3);
-    double lengthA  = sqrt(a1*a1 + a2*a2 + a3*a3);
-    double lengthB  = sqrt(b1*b1 + b2*b2 + b3*b3);
-
-    double plotVectorADirection = kPI;
-    double plotVectorBDirection = angle2;
-
-    xplot2 = xplot1 - lengthA;
-    yplot2 = yplot1;
-
-    flatCoords->point.set1Value(flatCount++, SbVec3f(xplot1, yplot1, 0.0000));
-    flatCoords->point.set1Value(flatCount++, SbVec3f(xplot2, yplot2, 0.0000));
-
-    xplot3 = cos(angle2) * lengthB + xplot2;
-    yplot3 = sin(angle2) * lengthB + yplot2;
-    
-    flatCoords->point.set1Value(flatCount++, SbVec3f(xplot3, yplot3, 0.0000));
-    for (int i = 2; i < tdCoords->point.getNum()-1; i += 2)
-    {
-        a1 = x2 - x3;
-        a2 = y2 - y3;
-        a3 = z2 - z3;
-        b1 = x4 - x3;
-        b2 = y4 - y3;
-        b3 = z4 - z3;
-
-        angle1 = GetVectorAngle(a1,a2,a3,b1,b2,b3);
-        TRACE("angle = %f\n", angle1);
-        plotVectorADirection = plotVectorBDirection + kPI - angle1;
-
-        xplot1 = xplot3;
-        yplot1 = yplot3;
-
-        x1 = x3;
-        y1 = y3;
-        z1 = z3;
-
-        x2 = x4;
-        y2 = y4;
-        z2 = z4;
-
-        x3 = tdCoords->point[i+2][0];
-        y3 = tdCoords->point[i+2][1];
-        z3 = tdCoords->point[i+2][2];
-        
-        x4 = tdCoords->point[i+3][0];
-        y4 = tdCoords->point[i+3][1];
-        z4 = tdCoords->point[i+3][2];
-            
-        // make vectors out of A and B
-        double a1 = x1 - x2;
-        double a2 = y1 - y2;
-        double a3 = z1 - z2;
-        double b1 = x3 - x2;
-        double b2 = y3 - y2;
-        double b3 = z3 - z2;
-        
-        lengthA = sqrt(a1*a1 + a2*a2 + a3*a3);
-
-        xplot2 = cos(plotVectorADirection) * lengthA + xplot1;
-        yplot2 = sin(plotVectorADirection) * lengthA + yplot1;
-
-        flatCoords->point.set1Value(flatCount++, SbVec3f(xplot2, yplot2, 0.0000));
-
-        a1 = x1 - x2;
-        a2 = y1 - y2;
-        a3 = z1 - z2;
-
-        b1 = x3 - x2;
-        b2 = y3 - y2;
-        b3 = z3 - z2;
-
-        angle2 = GetVectorAngle(a1, a2, a3, b1, b2, b3);
-        TRACE("angle = %f\n", angle2);
-    
-        plotVectorBDirection = plotVectorADirection - kPI + angle2; 
-        lengthB  = sqrt(b1* b1 + b2 * b2 + b3 * b3);
-        
-        xplot3 = cos(plotVectorBDirection) * lengthB + xplot2;
-        yplot3 = sin(plotVectorBDirection) * lengthB + yplot2;
-
-        flatCoords->point.set1Value(flatCount++, SbVec3f(xplot3, yplot3, 0.0000));
-    }
-    SoSeparator*   tempSep    = new SoSeparator;
-    tempSep->ref();
-    SoCoordinate3* tempCoords = new SoCoordinate3;
-    tempCoords->point.deleteValues(0,-1);
-    SoLineSet*     tempLines  = new SoLineSet;
-    tempSep->addChild(tempCoords);
-    tempSep->addChild(tempLines);
-
-    for (int i = 0; i < flatCoords->point.getNum(); i++) {
-        tempCoords->point.set1Value(i, flatCoords->point[i]);
-    }
-    SoWriteAction wa;
-    wa.getOutput()->openFile("flat.iv");
-    wa.apply(tempSep);
-    wa.getOutput()->closeFile();
-    tempSep->unref();
-    return;
-}
-
-
-double CpMakerView::hypotenuse ( double xside, double yside )
-{
-    double zside;
-    zside = sqrt ((( xside * xside ) + ( yside * yside )));
-    return zside;
-}
-
-
-void CpMakerView::OnFlattenPolyline() 
-{
-   // Flattener::flatten_polylines()
-    // create new DXF file for flattened sides...
-    BOOL    bAddFileDialog = FALSE;
-    LPCTSTR lpszFilter = NULL;
-    LPCTSTR lpszDefExt = "dxf";
-    LPCTSTR lpszFileName = "*.dxf";
-    DWORD   dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-    CWnd    *pParentWnd = NULL;
-
-    CFileDialog addFileDialog(bAddFileDialog,
-      lpszDefExt, lpszFileName, dwFlags,
-      lpszFilter, pParentWnd);
-
-    addFileDialog.m_ofn.lpstrTitle = LPCTSTR("create a flattened-sides DXF file...");
-    int nModal = addFileDialog.DoModal();
-    CString m_strAddFile;
-
-    if (nModal != IDOK) return;
-    m_strAddFile = addFileDialog.GetFileName();
-    SetCurrentDirectory(addFileDialog.GetFolderPath());
-
-    FILE* fp = fopen(m_strAddFile, "w");
-    fprintf(fp,"  0\nSECTION\n  2\nENTITIES\n");
-
-    int numSides = sectionCoords->point.getNum() - 1;
-    int numPathCoords = threeDCoords->point.getNum();
-
-    SoCoordinate3 *newCoords = new SoCoordinate3;
-    newCoords->ref();
-    SoCoordinate3* flatCoords = new SoCoordinate3;
-    flatCoords->ref();
-    
-    SoSeparator* tempSep = new SoSeparator;
-    tempSep->ref();
-    tempSep->addChild(newCoords);
-    SoLineSet *newLines = new SoLineSet;
-    tempSep->addChild(newLines);
-    int indexCount = 0;
-    int index;
-
-    for(int j = 0; j < numSides; j++)  {
-        int count = 0;
-        newCoords->point.deleteValues(0, -1);
-        flatCoords->point.deleteValues(0, -1);
-
-        for ( int k = j; k < loftCoords->point.getNum() - 1; k += numSides + 1)  {
-            if (j < numSides)  {
-                newCoords->point.set1Value(count++, loftCoords->point[k]);
-                newCoords->point.set1Value(count++, loftCoords->point[k + 1]);
-            }
-            else if (fClosedShape == TRUE)  {
-                newCoords->point.set1Value(count++, loftCoords->point[k]);
-                newCoords->point.set1Value(count++, loftCoords->point[k - numSides + 1]);
-            }
-        }
-
-        flatten(newCoords, flatCoords);
-        int numVertices = flatCoords->point.getNum();
-
-
-    // test...
-    SoSeparator*	testSep = new SoSeparator;
-    SoLineSet*		testLines = new SoLineSet;
-    SoCoordinate3*	testCoords = new SoCoordinate3;
-    testSep->ref();
-    testSep->addChild(testCoords);
-    testSep->addChild(testLines);
-    testCoords->point.deleteValues(0,-1);
-    for (int kk = 0; kk < flatCoords->point.getNum(); kk++)
-    {
-        //TRACE("loftCoords->point[%d] = %f  %f  %f\n", k, loftCoords->point[k][0], loftCoords->point[k][1], loftCoords->point[k][2]);
-        testCoords->point.set1Value(kk, flatCoords->point[kk]);
-    }
-
-    SoWriteAction wa;
-    wa.getOutput()->openFile("test2.iv");
-    wa.apply(testSep);
-    wa.getOutput()->closeFile();
-
-    testSep->unref();
-
-        char layer[4];
-        _itoa( j, layer, 10);
-        fprintf(fp,"  0\nLWPOLYLINE\n  5\n21\n100\nAcDbEntity\n  8\n%s\n100\n", layer);
-        fprintf(fp,"AcDbPolyline\n 90\n%9d\n 70\n   128\n 43\n0.0\n", numVertices );
-        
-        for (int i = 0; i < numVertices - 1; i+= 2)
-        {		
-            SbVec3f point = flatCoords->point[i];
-            fprintf(fp," 10\n");
-            fprintf(fp,"%f\n", point[0]);
-            fprintf(fp," 20\n");
-            fprintf(fp,"%f\n", point[1]);
-
-        }
-        for (int i = numVertices - 2; i > 0; i -= 2)
-        {
-            SbVec3f point = flatCoords->point[i];
-            fprintf(fp," 10\n");
-            fprintf(fp,"%f\n", point[0]);
-            fprintf(fp," 20\n");
-            fprintf(fp,"%f\n", point[1]);
-        }
-    }
-
-    fprintf(fp,"0\nENDSEC\n  0\nEOF\n");
-    fclose(fp);
-
-    tempSep->unref();
-    flatCoords->unref();
-    newCoords->unref();
-}	
-
-//#endif //USE_LOCAL_EXTRUDER
-*/
 
 SoNode *
 CpMakerView::findChildOfType(SoGroup * parent, SoType typeId)
@@ -1016,7 +713,7 @@ void CpMakerView::OnEditBeginEnd()
     fUpperLowerDialog = new CGetIntegerDialog("Set Limits","Lower Limit", "Upper Limit", this);
     fUpperLowerDialog->fInteger1 = 0;
     fLowerLimit = 0;
-    fUpperLimit = loftPathCoords->point.getNum();
+    fUpperLimit = fExtruder->fLoftPathCoords->point.getNum();
     fUpperLowerDialog->fInteger2 = fUpperLimit;
     fUpperLowerDialog->Create();
 }
@@ -1027,9 +724,7 @@ void CpMakerView::OnEditMultiples()
    fNumRotatedCopies = 1;
     iDlg.fInteger = fNumRotatedCopies;
     int ret = iDlg.DoModal();
-
     fMultipleSep->removeAllChildren();
-
     fNumRotatedCopies = iDlg.fInteger;
     float rotationIncrement = (3.141592653 * 2.0) / fNumRotatedCopies;
     TRACE("numcopies = %d\n", fNumRotatedCopies);
@@ -1642,7 +1337,7 @@ CpMakerView::mouseMoved(void *viewer, SoEventCallback *eventCB)
             TRACE("numSegmentsPerSide = %d\nnumShapeVertices = %d\n", numSegmentsPerSide, numShapeVertices);
         }
         else
-            numPathVertices  = theView->loftPathCoords->point.getNum();
+            numPathVertices  = theView->fExtruder->fLoftPathCoords->point.getNum();
 
         int currentSection;
         current_face = (current_face / 2) ;
@@ -1701,13 +1396,13 @@ void CpMakerView::OnUseSegmentDialog()
 int CpMakerView::getNumSides()
 {
     int numShapeCoords = sectionCoords->point.getNum();
-    int numPathCoords  = loftPathCoords->point.getNum();
+    int numPathCoords  = fExtruder->fLoftPathCoords->point.getNum();
     return numShapeCoords - 1;   /// this varies with geometry...
 }
 
 int CpMakerView::getNumPathCoords()
 {
-   return loftPathCoords->point.getNum();
+   return fExtruder->fLoftPathCoords->point.getNum();
 }
 /*
 //#ifdef USE_LOCAL_EXTRUDER
@@ -2160,3 +1855,9 @@ void CpMakerView::OnFlatten() //
 }
 
 
+
+
+void CpMakerView::OnFileExtrudealongmultiplelines()
+{
+	// TODO: Add your command handler code here
+}

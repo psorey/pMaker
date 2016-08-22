@@ -1,4 +1,4 @@
-//
+c//
 // A very specialized node; this manipulator completely takes care of
 // editing a set of line segments.  This is somewhat different from
 // other manipulators, because you insert it in the scene graph and it
@@ -77,7 +77,7 @@ LineManip2::LineManip2()
 	 //lineMaterial->diffuseColor.set1Value(3,1,1,0);
 	 //lineMaterial->diffuseColor.set1Value(4,0,1,1);
 
-	addChild(lineMatBinding);
+	 addChild(lineMatBinding);
 	 addChild(lineMaterial);
 
     lset = new SoLineSet;

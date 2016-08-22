@@ -6,6 +6,7 @@
 #include <Inspect.h>
 
 #include <Inventor/SbLine.h>
+#include <Inventor/SbVec3d.h>
 #include <Inventor/SbMatrix.h>
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoShapeHints.h>
@@ -72,11 +73,11 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     fTwistCoords     = twistCoords;
     fFractalScale    = 1.0;   // already initialized in constructor...
     fThickness       = 0;       //
-
+	TRACE("Extrude:\n");
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
-	TRACE("Extrude:\n");
+
 	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
 	//Inspect::Coordinate3("fVScaleCoords", fVScaleCoords);
     if(TRUE == flatten) 
@@ -111,7 +112,8 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     fTwistCoords     = twistCoords;     //
     fFractalScale    = fractal_scale;   //
     fThickness       = thickness;       //
-   // TRACE("Extrude::extrude_fractal\n");
+
+    //TRACE("Extrude::extrude_fractal\n");
 	//TRACE("fFractal_scale = %f\n", fFractalScale);
 	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
 	//Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
@@ -133,68 +135,7 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     return returnNode;
 }
 
-SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_1, SoCoordinate3 * section_2, int num_sides)
-{
-    fLoftCoords->point.deleteValues(0);
-    fLoftFaces->coordIndex.deleteValues(0);
-    int numShapeVertices = num_sides + 1;
-    int numPathVertices  = 2;
-    int fLoftCoordsCount = 0;
 
-    // generate the lofted shape...
-    for(int i = 0; i < numShapeVertices; i++) {
-        SbVec3f point = section_1->point[i];
-        fLoftCoords->point.set1Value(fLoftCoordsCount++, section_1->point[i]);
-    }
-    for(int i = 0; i < numShapeVertices; i++) {
-        SbVec3f point = section_2->point[i];
-        fLoftCoords->point.set1Value(fLoftCoordsCount++, section_2->point[i]);
-    }
-    // now generate IndexedFaceSet coordinate indices...
-    int ii = 0;
-    int jj = 0;
-    int count = 0;    
-    for( jj = 1; jj < numPathVertices + 1; jj++ ) {
-      //  TRACE("jj = %d\n", jj);
-        //int limit = 2 * numShapeVertices;
-        int limit = numShapeVertices;
-      //  TRACE("limit = %d\n", limit);
-
-        for (ii = jj - 1; ii < limit; ii++) {
-      //      TRACE("jj = %d   i = %d\n", jj, ii);
-            fLoftFaces->coordIndex.set1Value(count++, ii);
-            fLoftFaces->coordIndex.set1Value(count++, ii + 1);
-            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices);
-            fLoftFaces->coordIndex.set1Value(count++, -1);
-            fLoftFaces->coordIndex.set1Value(count++, ii + 1);
-            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices + 1);
-            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices);
-            fLoftFaces->coordIndex.set1Value(count++, -1);
-            // ii += numShapeVertices - 1;
-        }
-    }
-    Flattener::flatten_polylines(this->fLoftCoords, numShapeVertices - 1, numPathVertices); 
-
-    SoWriteAction wa;
-    wa.getOutput()->openFile("test.iv");
-    wa.apply(fLoftCoords);
-    
-    SoLineSet* lineSet = new SoLineSet;
-    lineSet->ref();
-    wa.apply(lineSet);
-    lineSet->unref();
-
-    SoShapeHints       * hints = new SoShapeHints;
-	hints->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
-	hints->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
-    SoSeparator        * returnNode = new SoSeparator;
-    returnNode->addChild(hints);
-    returnNode->addChild(this->createExtrusionNode()); // copy internal extrusion data create new scene subtree. 
-    returnNode->ref();
-    wa.apply(returnNode);
-    wa.getOutput()->closeFile();
-    return returnNode;
-}
 
 // this only works for regular polygons centered on the origin !!!
 int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
@@ -213,8 +154,8 @@ int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
     //Inspect::Vec3f("sectionCoords[0]", sectionCoords[0]);
     //Inspect::Vec3f("sectionCoords[1]", sectionCoords[1]);
 
-    float dist = (close_point - origin).length();
-    float ratio = (dist - fThickness) / dist;
+    double dist = (close_point - origin).length();
+    double ratio = (dist - fThickness) / dist;
 
     begin_matrix.setScale(ratio);
 
@@ -229,29 +170,134 @@ int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
 }
 
 
+
 void Extruder::makeLoftScaleCoords()  // this only needs to be called when the loft changes...
 {
+	//SoCoordinate3 * test_scales = new SoCoordinate3;
+	//SoCoordinate3 * test_x_locations = new SoCoordinate3;
+
     int numLoftPathCoords = fLoftPathCoords->point.getNum();
+	TRACE("numLoftPathCords = %d\n", numLoftPathCoords);
     // get total length of horiz line...
     int num_vscale_coords = fVScaleCoords->point.getNum();
     int num_hscale_coords = fHScaleCoords->point.getNum();
-
-    double totalLength = 0.0;
-    for (int i = 1; i < numLoftPathCoords; i++)
-        totalLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
     double currentLength = 0.0;
-    fLoftScaleCoords->point.deleteValues(0);
-    fLoftScaleCoords->point.set1Value(0, fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 1.0); 
-    for (int i = 1; i < numLoftPathCoords -1; i++) {
+    double totalLength = 0.0;
+	if(numLoftPathCoords > 2) { 
+	  // get total length of fLoftPathCoords
+      for (int i = 1; i < numLoftPathCoords; i++) {
+          totalLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
+	  }
+      fLoftScaleCoords->point.deleteValues(0, -1);
+     // trying to fix begin * end:  +fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
+	  fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
+      for (int i = 1; i < numLoftPathCoords -1; i++) {
         currentLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
         SbVec3f sc = interpolateScale(currentLength / totalLength);
+		TRACE("sc = %f  \n", currentLength/totalLength);
         fLoftScaleCoords->point.set1Value(i, sc);
-        //TRACE("sc scales = %f\n", sc);
-    }
-    fLoftScaleCoords->point.set1Value(numLoftPathCoords - 1, 
+	  }
+	  int cc= 0;
+	  for(int i=0; i<fHScaleCoords->point.getNum(); i++) {
+		SbVec3f loc = fHScaleCoords->point[i];
+	  }
+      fLoftScaleCoords->point.set1Value(numLoftPathCoords - 1, 
         SbVec3f(fHScaleCoords->point[num_hscale_coords - 1][1], 
         fVScaleCoords->point[num_vscale_coords - 1][1], 1.0)); 
+		//fHScaleCoords->point[num_hscale_coords - 1][1], 1.0)); 
+	}
+	//test_scales->copyFieldValues(fLoftScaleCoords);
+	//test_scales->ref();
+	//test_x_locations->ref();
+	//SoWriteAction wa;
+    //wa.getOutput()->openFile("scales.iv");
+    //wa.apply(test_scales);
+	//wa.apply(test_x_locations);
+   // wa.getOutput()->closeFile();
+    //test_scales->unref();
+   // test_x_locations->unref();
+
     return;
+}
+
+SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : full-length  */)
+{
+    // we take the y-value and interpolate a z-value...
+    int num_hscale_coords = fHScaleCoords->point.getNum();
+    double hLength = length; // * fHScaleCoords->point[num_hscale_coords -1][0];
+    double hScale = 1.0;
+    double vScale = 1.0;
+    if (num_hscale_coords == 1) {
+        hScale = fHScaleCoords->point[0][1];
+    } else {
+        for (int i = 0; i < num_hscale_coords; i++){
+            if (fHScaleCoords->point[i][0] == hLength){
+                hScale = fHScaleCoords->point[i][1];
+                TRACE("case 3\n");
+                i = num_hscale_coords;
+            }
+            else if (fHScaleCoords->point[i][0] > hLength){
+                if (i == 0) {
+                    hScale = fHScaleCoords->point[i][1];
+                    i = num_hscale_coords;
+                }
+                else {
+                    double x2 = fHScaleCoords->point[i][0];
+                    double x1 = fHScaleCoords->point[i - 1][0];
+                    double ratio = (length - x1) / (x2 - x1);
+                    double z2 = fHScaleCoords->point[i][1];
+                    double z1 = fHScaleCoords->point[i - 1][1];
+                    double z = (z2 - z1) * ratio + z1;
+                    hScale = z;
+					TRACE("i = %d   scale = %f\n", i, hScale);
+                    i = num_hscale_coords;
+                }
+            }
+        }
+    }
+    if (NULL == fVScaleCoords || fVScaleCoords->point.getNum() == 2) {      // we're done...
+        vScale = hScale;
+		TRACE("not doing v-scale\n");
+        return SbVec3f(hScale, hScale, 1);
+    }
+	TRACE("doing v-scale\n");
+    int num_vscale_coords = fVScaleCoords->point.getNum();
+    float vLength = length * fVScaleCoords->point[num_vscale_coords -1][0];
+
+    if (num_vscale_coords == 1) {
+        vScale = fVScaleCoords->point[0][1];
+				TRACE("condition B\n");
+    } else if (length >= 1) { 
+		TRACE("condition A\n");
+        vScale = fVScaleCoords->point[num_vscale_coords - 1][1];
+    } else {
+        for (int i = 0; i < num_vscale_coords; i++) {      // was i=0 !!!
+            if (fVScaleCoords->point[i][0] == vLength) {
+                vScale = fVScaleCoords->point[i][1];
+                TRACE("case 3!\n");
+                i = num_vscale_coords;
+            }
+            else if (fVScaleCoords->point[i][0] > vLength) {
+                if (i == 0){
+					TRACE("condition 1\n");
+                    vScale = fVScaleCoords->point[i][1];
+                    i = num_vscale_coords;
+                }
+                else {
+					TRACE("condition 2\n");
+                    float x2 = fVScaleCoords->point[i][0];
+                    float x1 = fVScaleCoords->point[i - 1][0];
+                    float ratio = (length - x1) / (x2 - x1);
+                    float z2 = fVScaleCoords->point[i][1];
+                    float z1 = fVScaleCoords->point[i - 1][1];
+                    float z = (z2 - z1) * ratio + z1;
+                    vScale = z;
+                    i = num_vscale_coords;
+                }
+            }
+        }
+    }
+    return SbVec3f(hScale, vScale, 1);
 }
 
 
@@ -268,16 +314,17 @@ void Extruder::makeLoftTwistCoords()  // this only needs to be called when the l
     fLoftTwistCoords->point.deleteValues(0);
     fLoftTwistCoords->point.setValue(fTwistCoords->point[0][1], fTwistCoords->point[0][1], 1.0); 
     for (int i = 1; i < numLoftPathCoords -1; i++) {
-        currentLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
+        currentLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i-1]);
         SbVec3f sc = interpolateTwist(currentLength / totalLength);
         fLoftTwistCoords->point.set1Value(i, sc);
     }
     fLoftTwistCoords->point.set1Value(numLoftPathCoords - 1, 
         SbVec3f(fTwistCoords->point[num_twist_coords - 1][1], 
         fTwistCoords->point[num_twist_coords - 1][1], 1.0)); 
-    for (int i=0; i<fLoftTwistCoords->point.getNum(); i++) 
+    for (int i=0; i<fLoftTwistCoords->point.getNum(); i++) {
         SbVec3f pt = fLoftTwistCoords->point[i];
     //Inspect::WriteCoordinate3("test_twist", fLoftTwistCoords);
+	}
     return;
 }
 
@@ -377,12 +424,9 @@ void Extruder::makeLoftObject()
             fLoftCoords->point.set1Value(fLoftCoordsCount++, result);
         }
     }
-
-                        // AND generate coord3 that follows triangles
     // now generate IndexedFaceSet coordinate indices...
     SoCoordinate3 * new_coords = new SoCoordinate3;
     new_coords -> ref();
-
     int count = 0;
     fUpperLimit = fLoftPathCoords->point.getNum()-1;
     fLowerLimit = 0;
@@ -399,9 +443,10 @@ void Extruder::makeLoftObject()
             i += numShapeVertices - 1;
         }
     }
+	// generate "sails.iv", transverse faces as sails along the form
     SoIndexedFaceSet * aFaces = new SoIndexedFaceSet;
-    aFaces->ref();
 	SoIndexedLineSet * aLines = new SoIndexedLineSet;
+    aFaces->ref();
 	aLines->ref();
     count = 0;
 	int count_lines = 0;
@@ -442,7 +487,6 @@ void Extruder::makeLoftObject()
 			i += numShapeVertices - 1;
         }
     }
-
     SoWriteAction wa;
     wa.getOutput()->openFile("sails.iv");
     wa.apply(fLoftCoords);
@@ -453,16 +497,7 @@ void Extruder::makeLoftObject()
 	aLines->unref();
 }
 
-
-SbVec3f Extruder::CalcVectorPoint(SbVec3f pt, float length, float theta)
-{
-	SbVec3f temp;
-	temp[0] = pt[0] + length * cos(theta);
-	temp[1] = pt[1] + length * sin(theta);
-	temp[2] = 0.0;
-	return temp;
-}
-
+/*
 SbVec3f Extruder::GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVec3f ptB2)
 {
 	// Segment intersection formulae; see the Antonio reference...
@@ -484,7 +519,8 @@ SbVec3f Extruder::GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVe
 	newpoint[0] = ptA1[0] + split * (ptA2[0] - ptA1[0]);
 	newpoint[1] = ptA1[1] + split * (ptA2[1] - ptA1[1]);
 	return newpoint;
-}
+} */
+
 
 SoSeparator * Extruder::createExtrusionNode(void)
 {
@@ -496,79 +532,6 @@ SoSeparator * Extruder::createExtrusionNode(void)
     brRoot->addChild(loftCoords);
     brRoot->addChild(loftFaces);
     return brRoot;
-}
-
-SbVec3f Extruder::interpolateScale(float length /* really a ratio of length : full-length  */)
-{
-    // we take the y-value and interpolate a z-value...
-    int num_hscale_coords = fHScaleCoords->point.getNum();
-    float hLength = length * fHScaleCoords->point[num_hscale_coords -1][0];
-    float hScale = 1.0;
-    float vScale = 1.0;
-    if (num_hscale_coords == 1) {
-        hScale = fHScaleCoords->point[0][1];
-    } else {
-        for (int i = 0; i < num_hscale_coords; i++){
-            if (fHScaleCoords->point[i][0] == hLength){
-                hScale = fHScaleCoords->point[i][1];
-                TRACE("case 3\n");
-                i = num_hscale_coords;
-            }
-            else if (fHScaleCoords->point[i][0] > hLength){
-                if (i == 0) {
-                    hScale = fHScaleCoords->point[i][1];
-                    i = num_hscale_coords;
-                }
-                else {
-                    float x2 = fHScaleCoords->point[i][0];
-                    float x1 = fHScaleCoords->point[i - 1][0];
-                    float ratio = (length - x1) / (x2 - x1);
-                    float z2 = fHScaleCoords->point[i][1];
-                    float z1 = fHScaleCoords->point[i - 1][1];
-                    float z = (z2 - z1) * ratio + z1;
-                    hScale = z;
-                    i = num_hscale_coords;
-                }
-            }
-        }
-    }
-    if (NULL == fVScaleCoords || ((fabs(fVScaleCoords->point[0][1]) - 1.0) < .001 && (fabs(fVScaleCoords->point[1][1]) - 1.0) < .001)) {      // we're done...
-        vScale = hScale;
-        return SbVec3f(hScale, vScale, 1);
-    }
-    int num_vscale_coords = fVScaleCoords->point.getNum();
-    float vLength = length * fVScaleCoords->point[num_vscale_coords -1][0];
-
-    if (num_vscale_coords == 1) {
-        vScale = fVScaleCoords->point[0][1];
-    } else if (length >= 1) { 
-        vScale = fVScaleCoords->point[num_vscale_coords - 1][1];
-    } else {
-        for (int i = 0; i < num_vscale_coords; i++) {
-            if (fVScaleCoords->point[i][0] == vLength) {
-                vScale = fVScaleCoords->point[i][1];
-                TRACE("case 3!\n");
-                i = num_vscale_coords;
-            }
-            else if (fVScaleCoords->point[i][0] > vLength) {
-                if (i == 0){
-                    vScale = fVScaleCoords->point[i][1];
-                    i = num_vscale_coords;
-                }
-                else {
-                    float x2 = fVScaleCoords->point[i][0];
-                    float x1 = fVScaleCoords->point[i - 1][0];
-                    float ratio = (length - x1) / (x2 - x1);
-                    float z2 = fVScaleCoords->point[i][1];
-                    float z1 = fVScaleCoords->point[i - 1][1];
-                    float z = (z2 - z1) * ratio + z1;
-                    vScale = z;
-                    i = num_vscale_coords;
-                }
-            }
-        }
-    }
-    return SbVec3f(hScale, vScale, 1);
 }
 
 
@@ -602,19 +565,77 @@ SbVec3f Extruder::interpolateTwist(float length /* really a ratio of length : fu
     }
     return SbVec3f(tTwist, tTwist, 0.0);
 }
-
-
-float Extruder::dist(SbVec3f pt1, SbVec3f pt2)
+SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_1, SoCoordinate3 * section_2, int num_sides)
 {
-    float   distance;
+    fLoftCoords->point.deleteValues(0);
+    fLoftFaces->coordIndex.deleteValues(0);
+    int numShapeVertices = num_sides + 1;
+    int numPathVertices  = 2;
+    int fLoftCoordsCount = 0;
+
+    // generate the lofted shape...
+    for(int i = 0; i < numShapeVertices; i++) {
+        SbVec3f point = section_1->point[i];
+        fLoftCoords->point.set1Value(fLoftCoordsCount++, section_1->point[i]);
+    }
+    for(int i = 0; i < numShapeVertices; i++) {
+        SbVec3f point = section_2->point[i];
+        fLoftCoords->point.set1Value(fLoftCoordsCount++, section_2->point[i]);
+    }
+    // now generate IndexedFaceSet coordinate indices...
+    int ii = 0;
+    int jj = 0;
+    int count = 0;    
+    for( jj = 1; jj < numPathVertices + 1; jj++ ) {
+      //  TRACE("jj = %d\n", jj);
+        //int limit = 2 * numShapeVertices;
+        int limit = numShapeVertices;
+      //  TRACE("limit = %d\n", limit);
+
+        for (ii = jj - 1; ii < limit; ii++) {
+      //      TRACE("jj = %d   i = %d\n", jj, ii);
+            fLoftFaces->coordIndex.set1Value(count++, ii);
+            fLoftFaces->coordIndex.set1Value(count++, ii + 1);
+            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices);
+            fLoftFaces->coordIndex.set1Value(count++, -1);
+            fLoftFaces->coordIndex.set1Value(count++, ii + 1);
+            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices + 1);
+            fLoftFaces->coordIndex.set1Value(count++, ii + numShapeVertices);
+            fLoftFaces->coordIndex.set1Value(count++, -1);
+            // ii += numShapeVertices - 1;
+        }
+    }
+    Flattener::flatten_polylines(this->fLoftCoords, numShapeVertices - 1, numPathVertices); 
+
+    SoWriteAction wa;
+    wa.getOutput()->openFile("test.iv");
+    wa.apply(fLoftCoords);
+    
+    SoLineSet* lineSet = new SoLineSet;
+    lineSet->ref();
+    wa.apply(lineSet);
+    lineSet->unref();
+
+    SoShapeHints       * hints = new SoShapeHints;
+	hints->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
+	hints->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
+    SoSeparator        * returnNode = new SoSeparator;
+    returnNode->addChild(hints);
+    returnNode->addChild(this->createExtrusionNode()); // copy internal extrusion data create new scene subtree. 
+    returnNode->ref();
+    wa.apply(returnNode);
+    wa.getOutput()->closeFile();
+    return returnNode;
+}
+
+double Extruder::dist(SbVec3f pt1, SbVec3f pt2) {
+    double   distance;
     distance = sqrt((pt2[0] - pt1[0])*(pt2[0] - pt1[0]) \
         +(pt2[1] - pt1[1])*(pt2[1] - pt1[1]));
     return distance;
 }
 
-double Extruder::GetTheta(SbVec3f pt1, SbVec3f pt2)
-{
-    //TRACE("GetTheta1\n");
+double Extruder::GetTheta(SbVec3f pt1, SbVec3f pt2) {
     return  atan2 (( pt2[1] - pt1[1]) , ( pt2[0] - pt1[0] ));   
 }
 

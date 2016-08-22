@@ -172,7 +172,7 @@ void FractalTreeMaker::MakeBranch(bool isLeft, SoSeparator * branchRoot, SbMatri
     levelMaterial->diffuseColor.setValue(SbColor(.95, .62, .62));
     if ( level % 2 == 0 )
         levelMaterial->diffuseColor.setValue(SbColor(.50, .52, .72));
-    branch_sep->addChild(levelMaterial);
+    // branch_sep->addChild(levelMaterial);
     float thickness = 0.0;
     if (fts->fUseThickness)
         thickness = fts->fLThick[level];

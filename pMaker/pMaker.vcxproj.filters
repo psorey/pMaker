@@ -48,9 +48,6 @@
     <ClCompile Include="Influence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\myInclude\Inspect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,12 +66,6 @@
     <ClCompile Include="OneIntegerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\myInclude\PEntity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\myInclude\PEntityMgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pMaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,12 +73,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pMakerView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\myInclude\PManip.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadDXF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SegmentDlg.cpp">
@@ -99,13 +84,28 @@
     <ClCompile Include="WhichBranchDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\myInclude\WriteDXF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FractalTreeSpec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FractalTreeMaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\PEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\PEntityMgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\PManip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\ReadDXF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\WriteDXF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\myInclude\Inspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -143,9 +143,6 @@
     <ClInclude Include="Influence.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\Inspect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,12 +158,6 @@
     <ClInclude Include="OneIntegerDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\PEntity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\PEntityMgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pMaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -174,12 +165,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pMakerView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\PManip.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\ReadDXF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -197,13 +182,28 @@
     <ClInclude Include="WhichBranchDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\myInclude\WriteDXF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FractalTreeMaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FractalTreeSpec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\PEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\PEntityMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\PManip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\ReadDXF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\WriteDXF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\myInclude\Inspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

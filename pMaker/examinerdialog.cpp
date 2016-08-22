@@ -57,6 +57,7 @@ CExaminerDialog::CExaminerDialog(CWnd* pParent /*=NULL*/)
 
 CExaminerDialog::CExaminerDialog(CString _title, SoCoordinate3 *_coords, CView* view, BOOL _showSlope)
 {
+	TRACE("used first constructor\n");
 	coords = _coords;
 	showSlope = _showSlope;
 	m_fVertExaggerate = 50;
@@ -66,10 +67,12 @@ CExaminerDialog::CExaminerDialog(CString _title, SoCoordinate3 *_coords, CView* 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	fNurbsCurve = NULL;
     splineCoords = NULL;
+	fManip = NULL; // !!!
 }
 
 CExaminerDialog::CExaminerDialog(CString _title, SoCoordinate3 *_coords, SoCoordinate3* _splineCoords, CView* view)
 {
+	TRACE("used second constructor\n");
     viewer = NULL;
 	coords = _coords;
 	splineCoords = _splineCoords;
@@ -80,6 +83,8 @@ CExaminerDialog::CExaminerDialog(CString _title, SoCoordinate3 *_coords, SoCoord
 	m_bClosed = 0;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
     fNurbsCurve = NULL;
+	fManip = NULL; // !!!
+	//fManip = new PManip(SoSeparator* parentRoot, SoWinViewer* viewer);
 }
 
 CExaminerDialog::~CExaminerDialog()
@@ -121,7 +126,7 @@ BEGIN_MESSAGE_MAP(CExaminerDialog, CDialog)
     ON_STN_CLICKED(IDC_VIEWER, &CExaminerDialog::OnStnClickedViewer)
 END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
+// // // // // ///////////////////////////////////////////////////////////////////
 // CExaminerDialog message handlers
 
 BOOL CExaminerDialog::OnInitDialog()
@@ -156,47 +161,24 @@ BOOL CExaminerDialog::OnInitDialog()
 	sensor->attach(coords);
 	SoEventCallback *myEventCallback = new SoEventCallback;
 	root->addChild(myEventCallback);
-
-	myEventCallback->addEventCallback(
-	  SoMouseButtonEvent::getClassTypeId(), 
-	  setButtonDown, this);
-
-	myEventCallback->addEventCallback(
-		SoMouseButtonEvent::getClassTypeId(), 
-		setButtonUp, this);
-
-	myEventCallback->addEventCallback(
-		SoLocation2Event::getClassTypeId(), 
-		mouseMoved, this);
-
-	//myEventCallback->addEventCallback(
-	//	SoKeyboardEvent::getClassTypeId(), 
-	//	keyPress, this);
-
 	viewer->setSceneGraph(root);
     viewer->addFinishCallback((SoWinViewerCB *)CExaminerDialog::viewerCB,this);            
 	viewer->viewAll();
-
-	 H_SCALE = V_SCALE = 1;
-
+	H_SCALE = V_SCALE = 1;
     CFrameWnd *parentFrame = GetParentFrame();
     
     // the one instance of Interface...
     theInterface = new Interface(parentFrame);
-    
     screenTrans = new SoTransform;
     root->addChild(screenTrans);
 	bgSep = new SoSeparator;
     SoSeparator* backgroundSep = new SoSeparator;
     SoPickStyle* bgPick = new SoPickStyle;
     bgPick->style.setValue(SoPickStyle::UNPICKABLE);
-
 	root->addChild(backgroundSep);
     backgroundSep->addChild(bgSep);
     bgSep->addChild(bgPick);
-
-    //grid = new Grid(root, theInterface);
-    grid = new Grid(backgroundSep, theInterface);  // !!! mar 2005
+    grid = new Grid(backgroundSep, theInterface); 
     
 	theInterface->setView((CView*)this);
     theInterface->setCamera(viewer->getCamera());
@@ -269,20 +251,6 @@ HCURSOR CExaminerDialog::OnQueryDragIcon()
 	return (HCURSOR) m_hIcon;
 }
 
-void
-CExaminerDialog::mouseMoved( void *viewer, SoEventCallback *eventCB)
-{
-}
-
-void
-CExaminerDialog::setButtonDown( void *viewer, SoEventCallback *eventCB)
-{
-}
-
-void
-CExaminerDialog::setButtonUp( void *viewer, SoEventCallback *eventCB)
-{
-}
 
 void
 CExaminerDialog::viewerCB(void *theView, void *)
@@ -293,7 +261,7 @@ CExaminerDialog::viewerCB(void *theView, void *)
 
 void CExaminerDialog::OnClear() 
 {
-	coords->point.deleteValues(1, -1);	
+	coords->point.deleteValues(2, -1);	
 	lineManip->setCoordinate3(coords);
 }
 
@@ -351,36 +319,6 @@ void CExaminerDialog::OnLoad()
    }
 }
 
-/*
-void CExaminerDialog::OnSave() 
-{
-    BOOL    bAddFileDialog = FALSE;
-    LPCTSTR lpszFilter = NULL;
-    LPCTSTR lpszDefExt = NULL;
-    LPCTSTR lpszFileName = "*.iv";
-    DWORD   dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-    CWnd    *pParentWnd = NULL;
-    
-    CFileDialog addFileDialog(bAddFileDialog,
-        lpszDefExt, lpszFileName, dwFlags,
-        lpszFilter, pParentWnd);
-	 TRACE("here\n");
-    addFileDialog.m_ofn.lpstrTitle = LPCTSTR("save Coordinate3 file...");
-    int nModal = addFileDialog.DoModal();
-
-	if (nModal == IDOK) {
-		SoWriteAction wa;
-		CString m_strAddFile = addFileDialog.GetFileName();
-        SetCurrentDirectory(addFileDialog.GetFolderPath());
-		wa.getOutput()->openFile(m_strAddFile);
-		//wa.apply(root);
-		wa.apply(coords); 
-		line->ref();		// !!! oct2004
-		wa.apply(line);   // !!! oct2004
-		wa.getOutput()->closeFile();
-    }		 
-}
-*/
 
 void CExaminerDialog::OnSave() 
 {
@@ -416,11 +354,11 @@ void CExaminerDialog::OnSave()
 			PNurbsCurve * nurbsCurve = (PNurbsCurve*)PManip::sSelectedEntity;
 			wa.apply(nurbsCurve->fCoords);
 			/*
-			int num = nurbsCurve->fCoords->point.getNum();
-			for(int i=0; i < num; i++)
-			{
-				coords->point.set1Value(1, nurbsCurve->fCoords->point[i]);
-			}
+				int num = nurbsCurve->fCoords->point.getNum();
+				for(int i=0; i < num; i++)
+				{
+					coords->point.set1Value(1, nurbsCurve->fCoords->point[i]);
+				}
 			*/
 		}
         else {
@@ -430,7 +368,7 @@ void CExaminerDialog::OnSave()
         newLineSet->unref();
 		wa.getOutput()->closeFile();	
     }
- 
+    
 }
 
 void CExaminerDialog::OnCheckClosed() 
@@ -467,11 +405,20 @@ void CExaminerDialog::sensorCB(void* data, SoSensor* sensor)
 			dlg->textSep->addChild(tempSep);
 		}
 	}
+	if(1) {
+		TRACE("made it above post message rbutton...\n");
+		// save the nurbs curve? 
+        // dlg->fNurbsCurve->GetPolylineCoords(); // 8/4/2016   !!!
+
+	}
 	dlg->m_pView->PostMessage(WM_RBUTTONDBLCLK, 0, 0);
+
+
 }
 
 void CExaminerDialog::OnDxf() 
 {
+	/*
 	ReadDXF readDXF(NULL);
 	CString ivFile = readDXF.readFile();
 
@@ -508,6 +455,7 @@ void CExaminerDialog::OnDxf()
 		coords->point.set1Value( i + 1, coords->point[0]);
 	else if (FALSE == m_bClosed && coords->point[i] == coords->point[0])
 		coords->point.deleteValues(i, -1);	
+		*/
 }
 
 void CExaminerDialog::OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -603,7 +551,8 @@ void CExaminerDialog::OnDxfOut()
 		SbVec3f point = coords->point[i];
         writeDXF->Write3dPOLYLINEPoint(point);
 	}
-    writeDXF->WriteZero();
+	writeDXF->WriteSEQUEND();
+    //writeDXF->WriteZero();
     writeDXF->WriteDXFEndsec();
     writeDXF->WriteEndDXF();
 	fclose(fp);
@@ -614,9 +563,9 @@ void CExaminerDialog::OnDxfOut()
 void CExaminerDialog::OnSplineButton() 
 {
 	PNurbsCurve* newNurbsCurve = new PNurbsCurve;
+	TRACE("goes past OnSplineButton()\n");
 	PEntity* newEntity = fManip->sEntityMgr->AddEntity(newNurbsCurve, PEntity::kNurbsCurve);
 	newNurbsCurve->fShowPolyline = TRUE;
-	//newNurbsCurve->fNumPolylineDivisions = m_fVertExaggerate;
 	newNurbsCurve->fNumPolylineDivisions = 55;
 
 	int num = coords->point.getNum();
@@ -624,17 +573,20 @@ void CExaminerDialog::OnSplineButton()
 	{
 		newNurbsCurve->AddPoint(coords->point[i]);
 	}
+	TRACE("goes past OnSplineButton()\n");
     fNurbsCurve = newNurbsCurve;
 	newNurbsCurve->UnHighlight();	
 	PManip::sShowNurbsPolylines = TRUE; /// !!!!
 	newNurbsCurve->SetConnectedCoords(coords, splineCoords);
 	newNurbsCurve->Update();
-
+	TRACE("goes past newNurbsCurve->Update()\n");
 	fManip->SetEditType(PManip::kMovePoint);
 	PEntity::sPolylineDivisions = 55;   /// !!!! need to input from dialog    uncommented this 2012
 	PEntity::sPolylineGenerationDistance = .05; // uncommented this 2012
 	lineManip->ref();   // so we can re-attach it later...
 	root->removeChild(lineManip);	
+	root->addChild(fNurbsCurve->GetNode()); // !!! just added this
+	//coords = fNurbsCurve->GetCoords();
 	m_pView->PostMessage(WM_RBUTTONDBLCLK, 0, 0);
 }
 

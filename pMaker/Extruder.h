@@ -10,6 +10,7 @@
 class SoCoordinate3;
 class SoIndexedFaceSet;
 class Flattener;
+class SbVec3d;
 
 
 class Extruder 
@@ -48,16 +49,16 @@ public:
 
     SoSeparator * extrude(SoCoordinate3 * shapeCoords, 
                           SoCoordinate3 * pathCoords, 
-                          SoCoordinate3* hScaleCoords, 
-                          SoCoordinate3* vScaleCoords,   // if NULL then hScaleCoords will be substituted
-                          SoCoordinate3* twistCoords,
+                          SoCoordinate3 * hScaleCoords, 
+                          SoCoordinate3 * vScaleCoords,   // if NULL then hScaleCoords will be substituted
+                          SoCoordinate3 * twistCoords,
                           bool flatten);
 
     SoSeparator * extrude_fractal(SoCoordinate3 * shapeCoords, 
                           SoCoordinate3 * pathCoords, 
-                          SoCoordinate3* hScaleCoords, 
-                          SoCoordinate3* vScaleCoords,   // if NULL then hScaleCoords will be substituted
-                          SoCoordinate3* twistCoords,
+                          SoCoordinate3 * hScaleCoords, 
+                          SoCoordinate3 * vScaleCoords,   // if NULL then hScaleCoords will be substituted
+                          SoCoordinate3 * twistCoords,
                           float fractal_scale, 
                           float thickness, 
                           bool flatten,
@@ -74,8 +75,8 @@ public:
     SoSeparator * createExtrusionNode(void);
  // private:
  // utilities...
-    float       dist(SbVec3f pt1, SbVec3f pt2);
-    SbVec3f     interpolateScale(float length /* really a ratio of length : full-length  */);
+    double      dist(SbVec3f pt1, SbVec3f pt2);
+    SbVec3f     interpolateScale(double length /* really a ratio of length : full-length  */);
     SbVec3f     interpolateTwist(float length);
     double      GetTheta(SbVec3f pt1, SbVec3f pt2);
     double      GetTheta(double ptAx, double ptAy, double ptBx, double ptBy);
@@ -84,7 +85,6 @@ public:
     SbRotation  interpolatePRY2(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
     SbRotation  getPRY(SbVec3f pt1, SbVec3f pt2);
     SbVec3f     GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVec3f ptB2);
-    SbVec3f     CalcVectorPoint(SbVec3f pt, float length, float theta);
 
     // temporary functions for testing...
     void        print_matrix(char * label, SbMatrix mat);

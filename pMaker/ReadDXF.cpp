@@ -10,10 +10,18 @@ ReadDXF::ReadDXF( SoSeparator *_parent)
     parent = _parent;
     //theVP = new SoVertexProperty;
     theLines = new SoIndexedLineSet;
+	theLines->ref();
     theCoords = new SoCoordinate3;
-    
+	theCoords->ref();
 }
 
+/*
+ReadDXF::~ReadDXF(void)
+{
+	theCoords->unref();
+	theLines->unref();
+}
+*/
 
 CString 
 ReadDXF::readFile() 
@@ -39,6 +47,7 @@ ReadDXF::readFile()
     addFileDialog.m_ofn.lpstrTitle = LPCTSTR("select a DXF file... ");
     int nModal = addFileDialog.DoModal();
     CString m_strAddFile;
+	if(nModal != IDOK) return CString("");
 
     if (nModal == IDOK) {
             m_strAddFile = addFileDialog.GetFileName();
@@ -97,7 +106,7 @@ ReadDXF::readFile()
             wa.apply(topSep);
             wa.getOutput()->closeFile();
             topSep->unref();        
-        }
+		}
         CString returnString = CString(nwfile);
         return returnString;
 }
@@ -179,9 +188,9 @@ ReadDXF::getPOLYLINE(void)
             else count++;
         }
         if((strcmp(line,"SEQEND\n")) == 0) {
-           // theVP->vertex.set1Value(vertexNum++, (SbVec3f(x,y,z)));
-            theCoords->point.set1Value(vertexNum++, (SbVec3f(x,y,z)));
-            theLines->coordIndex.set1Value(coordIndexNum++, vertexNum-1);
+            // theVP->vertex.set1Value(vertexNum++, (SbVec3f(x,y,z)));     
+            // theCoords->point.set1Value(vertexNum++, (SbVec3f(x,y,z)));
+            // theLines->coordIndex.set1Value(coordIndexNum++, vertexNum-1);
             theLines->coordIndex.set1Value(coordIndexNum++, -1);
             count--;
             return;
@@ -293,6 +302,7 @@ ReadDXF::getLWPOLYLINE(void)
             }
 
             if(!closed) {
+				TRACE("not closed\n");
                 theLines->coordIndex.set1Value(coordIndexNum++, -1);
             }
             else {
