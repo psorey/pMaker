@@ -552,12 +552,10 @@ void CExaminerDialog::OnDxfOut()
         writeDXF->Write3dPOLYLINEPoint(point);
 	}
 	writeDXF->WriteSEQUEND();
-    //writeDXF->WriteZero();
     writeDXF->WriteDXFEndsec();
     writeDXF->WriteEndDXF();
 	fclose(fp);
-	//tempSep->unref();
-	//coords->unref();
+
 }
 
 void CExaminerDialog::OnSplineButton() 

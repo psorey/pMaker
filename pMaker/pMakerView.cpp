@@ -11,6 +11,7 @@
 #include "FractalTreeMaker.h"
 #include "FractalTreeSpec.h"
 #include <Inspect.h>
+#include <WriteDXF.h>
 //#include <ruby.h>
 
 #include "direct.h"
@@ -103,7 +104,7 @@ BEGIN_MESSAGE_MAP(CpMakerView, CView)
     ON_COMMAND(ID_EDIT_CLIPPLANE, OnEditClipPlane)
     ON_COMMAND(ID_EDIT_CLIPPLANEOFF, OnEditClipPlaneOff)
     ON_COMMAND(ID_ANTISQUISH, OnAntisquish)
-//    ON_COMMAND(ID_FILE_FLATTENIMPORTEDCOORDS, OnFlattenImportedCoords)
+    ON_COMMAND(ID_FILE_FLATTENIMPORTEDCOORDS, OnFlattenImportedCoords)
 //    ON_COMMAND(ID_FLATTEN_TWO, OnFlattenTwoLines)
     ON_COMMAND(ID_VERT_EQ_HORIZ, OnVertEqHoriz)
     ON_COMMAND(ID_ADD_BACKGND_SOLID, OnAddBackgndSolid)
@@ -146,6 +147,7 @@ CpMakerView::CpMakerView()
     viewer = NULL;
     fFractalTreeSpec = NULL;
     fExtruder = NULL;
+	fFlattener = NULL;
     //SoDB::init();
 }
 
@@ -154,6 +156,8 @@ CpMakerView::~CpMakerView()
     if (viewer != NULL)            delete viewer;
     if (fFractalTreeSpec != NULL)  delete fFractalTreeSpec;
     if (fExtruder != NULL)         delete fExtruder;
+	if (fFlattener != NULL)         delete fFlattener;
+
     threeDCoords->unref();
     sectionCoords->unref();
     hScaleCoords->unref();    
@@ -237,6 +241,7 @@ void CpMakerView::OnInitialUpdate()
         p.showCmd = SW_SHOWMAXIMIZED;
         SetWindowPlacement(&p);
         fExtruder = new Extruder; // here???
+		fFlattener = new Flattener; 
     }
     // clip plane nodes...(for cutting sections of loft object)
     fClipPlaneSep = NULL;
@@ -515,7 +520,7 @@ void CpMakerView::OnShowDialog() // call this to regenerate the extrusion
 	// examiner dialog updates nurbs curve polyline, then:
     this->loftRoot->removeAllChildren();
     SoSeparator * branch_sep;
-    if(abs((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0) < 0.001) {
+    if(abs((const long)((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0)) < 0.001) {
         branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->hScaleCoords, this->twistCoords, false );
     } else {
         branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, false );
@@ -937,36 +942,19 @@ void CpMakerView::OnAntisquish()
       fAntiSquish = TRUE;
    }
 }
-/*
+
 void CpMakerView::OnFlattenImportedCoords() 
 {
     // flatten a zig-zag line
-    BOOL    	bAddFileDialog = TRUE;
-    LPCTSTR 	lpszFilter = NULL;
-    LPCTSTR 	lpszDefExt = "iv";
-    LPCTSTR 	lpszFileName = "*.iv";
-    DWORD   	dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-    CWnd *   pParentWnd = NULL;
-
-    CFileDialog addFileDialog(bAddFileDialog,
-      lpszDefExt, lpszFileName, dwFlags,
-      lpszFilter, pParentWnd);
-
-    addFileDialog.m_ofn.lpstrTitle = LPCTSTR("load a zig-zag coordinate set to flatten...");
-    int nModal = addFileDialog.DoModal();
+	CString filename = GetFilename(".iv", "*.iv", "load a zig-zag coordinate set to flatten...");
+	if (strcmp(filename, "") == 0) return;
 
     SoSeparator* tempNode = new SoSeparator;
     tempNode->ref();
     SoCoordinate3* inputCoords = new SoCoordinate3;
     inputCoords->point.deleteValues(0,-1);
-
-    if (nModal != IDOK) return;
-    CString m_strAddFile = addFileDialog.GetFileName();
-    SetCurrentDirectory(addFileDialog.GetFolderPath());
-
-    ////  read in position node...
     SoInput myInput;
-    myInput.openFile(m_strAddFile);
+    myInput.openFile(filename);
     tempNode->addChild(SoDB::readAll(&myInput));
     myInput.closeFile();  
       
@@ -993,30 +981,27 @@ void CpMakerView::OnFlattenImportedCoords()
     //int indexCount = 0;
     //int index;
 
-    CString dxfFilename = m_strAddFile.SpanExcluding(".");
+    CString dxfFilename = filename.SpanExcluding(".");
     dxfFilename += "_flat.dxf";
 
-    FILE* fp = fopen(dxfFilename, "w");
+    FILE * fp = fopen(dxfFilename, "w");
     if(NULL == fp){
         TRACE("could not open file %s\n", dxfFilename);
         return;
     }
-    fprintf(fp,"  0\nSECTION\n  2\nENTITIES\n");
+	WriteDXF * write_dxf = new WriteDXF(fp);
+
+
+
+//    fprintf(fp,"  0\nSECTION\n  2\nENTITIES\n");
 
     int count = 0;
     //newCoords->point.deleteValues(0, -1);
     flatCoords->point.deleteValues(0, -1);
 
-    flatten(inputCoords, flatCoords);
-        
-        //SoWriteAction wa;
-        //CString m_strAddFile = addFileDialog.GetFileName();
-        // SetCurrentDirectory(addFileDialog.GetFolderPath());
-        //wa.getOutput()->openFile("test.iv");
-        //wa.apply(tempSep);
-        //wa.apply(flatCoords); 
-        //wa.getOutput()->closeFile();
-        
+    fFlattener->flatten(inputCoords, flatCoords);  
+	write_dxf->WriteCoords(flatCoords);
+	/*
     int numVertices = flatCoords->point.getNum();
 
     fprintf(fp,"  0\nLWPOLYLINE\n  5\n444\n100\nAcDbEntity\n  8\n%s\n100\n", "0");
@@ -1031,6 +1016,8 @@ void CpMakerView::OnFlattenImportedCoords()
         fprintf(fp,"%f\n", point[1]);
     }
     fprintf(fp,"  0\nENDSEC\n  0\nEOF\n");
+
+	*/
     fclose(fp);
 
 //	tempSep->unref();
@@ -1038,7 +1025,7 @@ void CpMakerView::OnFlattenImportedCoords()
 //	newCoords->unref();
 }
 
-*/
+
 /*
 void CpMakerView::OnFlattenTwoLines() 
 {
@@ -1607,6 +1594,7 @@ FractalTreeSpec * saved_tree_spec = NULL;  // global!! we use this to retain val
 void CpMakerView::OnLoadTreeSpecFile()
 {
     CString filename = GetFilename(".fts", "*.fts", "Load a Fractal Tree Spec...");
+	if (strcmp(filename, "") == 0) return;
     CFile theFile;
     theFile.Open(_T(filename), CFile::modeRead );
     CArchive archive(&theFile, CArchive::load);

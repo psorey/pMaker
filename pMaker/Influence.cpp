@@ -93,7 +93,7 @@ float Influence::apply_incident_angle_factor(bool isLeft, SbLine segment)
     float dot = (segment_direction_vector.dot(desired_direction_vector));  // dot product is the angle between the vectors
 
     TRACE("dot = %f\n\n", dot);
-    float influence_amount = abs(cos(dot));  // 0 to 1, centerline segment perpendicular to influence returns 1.0, parallel = 0.0
+	float influence_amount = abs((const long) cos(dot));  // 0 to 1, centerline segment perpendicular to influence returns 1.0, parallel = 0.0
     return influence_amount;
 }
 

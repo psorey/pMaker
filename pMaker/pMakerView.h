@@ -31,6 +31,7 @@ class MarkerDialog;
 class SoMFVec3f;
 class SoEventCallback;
 class Extruder;
+class Flattener;
 
 
 
@@ -47,6 +48,7 @@ public:
 	BOOL                    fAntiSquish;
     SoWinExaminerViewer     *viewer;
     Extruder                *fExtruder;
+	Flattener               *fFlattener;
 
 	CExaminerDialog*	    threeDDlg;
 	CExaminerDialog*	    vertDlg;
@@ -120,7 +122,7 @@ public:
 
 // Operations
 public:
-    static	void		    sensorCB(void *data, SoSensor *sensor);
+//    static	void		    sensorCB(void *data, SoSensor *sensor);
     static  void            mouseMoved(void *,SoEventCallback *eventCB);
     static	SoNode*		    findChildOfType(SoGroup * parent, SoType typeId);
 			SoNode*		    findNodeByName(SoGroup *parent, char *name);
@@ -139,12 +141,12 @@ public:
 //			void		    flatten(SoCoordinate3* tdCoords, SoCoordinate3* flatCoords);
 //	static	double		    hypotenuse( double xside, double yside );
 			void		    setUpperLower(int upper, int lower) { fUpperLimit = upper; fLowerLimit = lower; }
-	static	double		    GetTheta(SbVec3f pt1, SbVec3f pt2);
-	static  double          GetTheta(double ptAx, double ptAy, double ptBx, double ptBy);
-	static  double          GetTheta(double sideX, double sideY);
+//	static	double		    GetTheta(SbVec3f pt1, SbVec3f pt2);
+//	static  double          GetTheta(double ptAx, double ptAy, double ptBx, double ptBy);
+//	static  double          GetTheta(double sideX, double sideY);
 			SbVec3f		    GetIntersection(SbVec3f ptA1, SbVec3f ptA2,SbVec3f ptB1, SbVec3f ptB2);
 			SbVec3f		    CalcVectorPoint(SbVec3f pt, float length, float theta);
-	static  double          GetVectorAngle(double a1, double a2, double a3, double b1, double b2, double b3);
+//	static  double          GetVectorAngle(double a1, double a2, double a3, double b1, double b2, double b3);
 //            void            getSegmentCoords(int whichSegment, SoMFVec3f& segmentCoords);
             int             getNumPathCoords();
             int             getNumSides();   // used in marker dialog...
@@ -218,7 +220,7 @@ protected:
 	afx_msg void OnEditClipPlane();
 	afx_msg void OnEditClipPlaneOff();
 	afx_msg void OnAntisquish();
-//	afx_msg void OnFlattenImportedCoords();
+	afx_msg void OnFlattenImportedCoords();
 //	afx_msg void OnFlattenTwoLines();
 	afx_msg void OnVertEqHoriz();
 	afx_msg void OnAddBackgndSolid();

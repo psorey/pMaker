@@ -155,7 +155,7 @@ int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
     //Inspect::Vec3f("sectionCoords[1]", sectionCoords[1]);
 
     double dist = (close_point - origin).length();
-    double ratio = (dist - fThickness) / dist;
+    double ratio = (dist + fThickness) / dist;   //!!!
 
     begin_matrix.setScale(ratio);
 
@@ -339,8 +339,11 @@ void Extruder::print_matrix(char * label, SbMatrix mat)
 // generate the loft and store it locally...
 void Extruder::makeLoftObject() 
 {
+	TRACE("makeLoftObject()\n");
+
     fLoftCoords->point.deleteValues(0);
     fLoftFaces->coordIndex.deleteValues(0);
+	fLoftFaces->setName(SbName("tree"));
     // get number of shape vertices
     int numShapeVertices = fShapeCoords->point.getNum();  
     // get number of path vertices
@@ -424,6 +427,7 @@ void Extruder::makeLoftObject()
             fLoftCoords->point.set1Value(fLoftCoordsCount++, result);
         }
     }
+
     // now generate IndexedFaceSet coordinate indices...
     SoCoordinate3 * new_coords = new SoCoordinate3;
     new_coords -> ref();

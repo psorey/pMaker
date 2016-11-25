@@ -18,7 +18,8 @@
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/actions/SoWriteAction.h>
 
-
+Flattener::Flattener(void) {}
+Flattener::~Flattener(void) {}
 
 ///////// * Using this one  * ///////////
 void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords) 
