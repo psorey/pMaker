@@ -76,11 +76,12 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     fThickness       = 0;       //
 	TRACE("Extrude:\n");
     this->makeLoftScaleCoords();        //
-    //this->makeLoftTwistCoords();        //
+    this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
 
 	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
 	//Inspect::Coordinate3("fVScaleCoords", fVScaleCoords);
+
     if(TRUE == flatten) 
          Flattener::flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
 
@@ -120,7 +121,7 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
 	//Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
 
     this->makeLoftScaleCoords();        //
-    //this->makeLoftTwistCoords();        //
+    this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
 
     if(TRUE == flatten) 

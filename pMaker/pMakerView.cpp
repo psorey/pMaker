@@ -520,11 +520,11 @@ void CpMakerView::OnShowDialog() // call this to regenerate the extrusion
 	// examiner dialog updates nurbs curve polyline, then:
     this->loftRoot->removeAllChildren();
     SoSeparator * branch_sep;
-    if(abs((const long)((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0)) < 0.001) {
-        branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->hScaleCoords, this->twistCoords, false );
-    } else {
+    // if(abs((const long)((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0)) < 0.001) {
+    //    branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->hScaleCoords, this->twistCoords, false );
+    //} else {
         branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, false );
-    }
+    //}
     loftRoot->addChild(branch_sep);
     TRACE("OnShowDialog()\n");   
 }
@@ -1548,11 +1548,11 @@ void CpMakerView::ReadLDF(CString filename, SoCoordinate3 * _sectionCoords,
     if(tThreeDCoords != NULL)
         _loftPathCoords->copyFieldValues(tThreeDCoords);
 
-    if(tSectionCoords != NULL) { TRACE("sectionCoords\n"); }
-    if(tHScaleCoords  != NULL) { TRACE("hScaleCoords\n");  }
-    if(tVScaleCoords  != NULL) { TRACE("vScaleCoords\n");  }
-    if(tTwistCoords   != NULL) { TRACE("twistCoords\n");   }
-    if(tThreeDCoords  != NULL) { TRACE("loftPathCoords\n");  }
+    //if(tSectionCoords != NULL) { TRACE("sectionCoords\n"); }
+    //if(tHScaleCoords  != NULL) { TRACE("hScaleCoords\n");  }
+    //if(tVScaleCoords  != NULL) { TRACE("vScaleCoords\n");  }
+    //if(tTwistCoords   != NULL) { TRACE("twistCoords\n");   }
+    //if(tThreeDCoords  != NULL) { TRACE("loftPathCoords\n");  }
     
     tempSep->unref();
 }
@@ -1766,12 +1766,15 @@ void CpMakerView::OnChangeLoftScale()
         centerline_scale_matrix.multVecMatrix(dst, dst2);
         scaled_centerline_coords->point.set1Value(i, dst2);
     }
+	TRACE("do we get here ??????\n");
+
     loftRoot->removeAllChildren();
-    if(((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0) < 0.001) {
-        loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, hScaleCoords, this->twistCoords,  1.0, thickness, true));
-    } else {
+
+   // if(((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0) < 0.001) {
+   //     loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, hScaleCoords, this->twistCoords,  1.0, thickness, true));
+   // } else {
         loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, vScaleCoords,this->twistCoords,  1.0, thickness, true));
-    }
+   // }
 }
 
 
