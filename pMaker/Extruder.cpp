@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/actions/SoWriteAction.h>
 
+// #define MAKE_SAILS -- for putting 'sails' into tetrahedral structures
 
 // for Fractal Tree making:
 // pass Extruder a centerline path and typical section or shape, the h- and v-scale coords(unprocessed)
@@ -34,7 +35,7 @@
 //
 
 
-Extruder::Extruder(void)    // does no transformations on input data other than that necessary for 
+Extruder::Extruder(void)    // does no transformations on input valuesF other than that necessary for 
                             // creating an extrusion as specified in the input
 {
     fLoftCoords        = new SoCoordinate3;     // for output
@@ -47,7 +48,7 @@ Extruder::Extruder(void)    // does no transformations on input data other than 
     fLoftTwistCoords->ref(); 
     fClosedShape       = TRUE;
     fFractalScale      = 1.0;
-    fEqualScale        = FALSE;
+    //fEqualScale        = FALSE;
     fThickness         = 0.0;
 }
 
@@ -75,7 +76,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     fThickness       = 0;       //
 	TRACE("Extrude:\n");
     this->makeLoftScaleCoords();        //
-    this->makeLoftTwistCoords();        //
+    //this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
 
 	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
@@ -119,7 +120,7 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
 	//Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
 
     this->makeLoftScaleCoords();        //
-    this->makeLoftTwistCoords();        //
+    //this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
 
     if(TRUE == flatten) 
@@ -155,7 +156,7 @@ int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
     //Inspect::Vec3f("sectionCoords[1]", sectionCoords[1]);
 
     double dist = (close_point - origin).length();
-    double ratio = (dist + fThickness) / dist;   //!!!
+    double ratio = (dist - fThickness) / dist;   //!!!
 
     begin_matrix.setScale(ratio);
 
@@ -219,7 +220,173 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 
     return;
 }
+// generate the loft and store it locally...
+void Extruder::makeLoftObject()
+{
+	TRACE("makeLoftObject()\n");
 
+	fLoftCoords->point.deleteValues(0);
+	fLoftFaces->coordIndex.deleteValues(0);
+	fLoftFaces->setName(SbName("tree_faces"));
+	// get number of shape vertices
+	int numShapeVertices = fShapeCoords->point.getNum();
+	// get number of path vertices
+	int numPathVertices = fLoftPathCoords->point.getNum();  //loft path usually starts at 0,0,0
+	int fLoftCoordsCount = 0;
+
+	for (int i = 0; i < numPathVertices; i++) {
+		SbMatrix mat;
+		mat.makeIdentity();
+		// apply twist...
+		float twist = fLoftTwistCoords->point[i][1];
+		SbRotation twistRotation(SbVec3f(0, 0, 1), twist);
+		mat.setRotate(twistRotation);   // !!!! best place to twist!
+
+										// rescale the section to give true corners...
+										// this seems to work only in the x direction !!!
+		if (/*fAntiSquish && */ i != 0 && i != numPathVertices - 1) {
+			float deflection1 = atan2((fLoftPathCoords->point[i][1] - fLoftPathCoords->point[i - 1][1]),
+				(fLoftPathCoords->point[i][0] - fLoftPathCoords->point[i - 1][0]));
+			float deflection2 = atan2((fLoftPathCoords->point[i + 1][1] - fLoftPathCoords->point[i][1]),
+				(fLoftPathCoords->point[i + 1][0] - fLoftPathCoords->point[i][0]));
+			deflection1 -= deflection2;
+			deflection1 /= 2;
+			//if(abs(deflection1) < .0001) 
+			//{} 
+			SbMatrix mat00;
+			float scaleFactor = fabs(1 / cos(deflection1));
+			mat00.setScale(SbVec3f(scaleFactor, 1, 1));
+			mat *= mat00;
+		}
+		// apply the fractal scale factor (normally 1.0)
+		SbMatrix fractal_scale_matrix;
+		fractal_scale_matrix.setScale(fFractalScale);
+		mat *= fractal_scale_matrix;
+
+		// apply the loft scale...
+		int count = 0;
+		SbMatrix mat0;
+		mat0.setScale(fLoftScaleCoords->point[i]);
+		mat *= mat0;
+		SoMFVec3f scaledCoords;
+		scaledCoords.deleteValues(0, -1);
+		int scaledCoordsCount = 0;
+		for (int j = 0; j < numShapeVertices; j++) {
+			SbVec3f result;
+			mat.multVecMatrix(fShapeCoords->point[j], result);
+			scaledCoords.set1Value(j, result);
+		}
+		if (fThickness > .0001)
+			scaleCoordsForThickness(scaledCoords);
+
+		// finished scaling and offsetting, now continue matrix operations...
+		SbMatrix   mat1;
+		SbMatrix   mat2;
+		SbRotation rot;
+		SbRotation rot3(SbVec3f(1, 0, 0), 1.5707963267);
+		mat1.setRotate(rot3);
+		SbVec3f translate = fLoftPathCoords->point[i];
+		mat2.setTranslate(translate);
+		// rot = pitch, roll, yaw
+		if (0 == i)
+			rot = this->getPRY(fLoftPathCoords->point[i], fLoftPathCoords->point[i + 1]);
+		else if (i == numPathVertices - 1)
+			rot = this->getPRY(fLoftPathCoords->point[i - 1], fLoftPathCoords->point[i]);
+		else
+			rot = this->interpolatePRY2(fLoftPathCoords->point[i - 1],
+				fLoftPathCoords->point[i],
+				fLoftPathCoords->point[i + 1]);
+		SbMatrix mat3;
+		mat3.setRotate(rot);
+		SbMatrix finalMat;
+		finalMat.makeIdentity();
+		finalMat *= mat1;  // rotate 90 degrees in the x axis
+		finalMat *= mat3;  // rotate half the interior vector angle
+		finalMat *= mat2;  // translate the shape to the loft path coordinates
+
+						   // generate the lofted shape at the current path vertex...
+		for (int j = 0; j < numShapeVertices; j++) {
+			SbVec3f result;
+			finalMat.multVecMatrix(scaledCoords[j], result);
+			fLoftCoords->point.set1Value(fLoftCoordsCount++, result);
+		}
+	}
+
+	// now generate IndexedFaceSet coordinate indices...
+	SoCoordinate3 * new_coords = new SoCoordinate3;
+	new_coords->ref();
+	int count = 0;
+	fUpperLimit = fLoftPathCoords->point.getNum() - 1;
+	fLowerLimit = 0;
+	for (int jj = 0; jj < numShapeVertices - 1; jj++) {
+		for (int i = jj + fLowerLimit * numShapeVertices; i < jj + fUpperLimit * numShapeVertices; i++) {
+			fLoftFaces->coordIndex.set1Value(count++, i);
+			fLoftFaces->coordIndex.set1Value(count++, i + 1);
+			fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices);
+			fLoftFaces->coordIndex.set1Value(count++, -1);
+			fLoftFaces->coordIndex.set1Value(count++, i + 1);
+			fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices + 1);
+			fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices);
+			fLoftFaces->coordIndex.set1Value(count++, -1);
+			i += numShapeVertices - 1;
+		}
+	}
+#ifdef MAKE_SAILS
+	// generate "sails.iv", transverse faces as sails along the form
+	SoIndexedFaceSet * aFaces = new SoIndexedFaceSet;
+	SoIndexedLineSet * aLines = new SoIndexedLineSet;
+	aFaces->ref();
+	aLines->ref();
+	count = 0;
+	int count_lines = 0;
+	// for( int jj = 0; jj < numShapeVertices - 1; jj++) {    
+	for (int jj = 0; jj < 1; jj++) {
+		for (int i = jj + fLowerLimit * numShapeVertices; i < jj + fUpperLimit * numShapeVertices; i++) {
+			aFaces->coordIndex.set1Value(count++, i);
+			aFaces->coordIndex.set1Value(count++, i + 1);
+			aFaces->coordIndex.set1Value(count++, i + 2);
+			aFaces->coordIndex.set1Value(count++, -1);
+			aFaces->coordIndex.set1Value(count++, i);
+			aFaces->coordIndex.set1Value(count++, i + 2);
+			aFaces->coordIndex.set1Value(count++, i + 3);
+			aFaces->coordIndex.set1Value(count++, -1);
+			if (i > 0) {
+				aLines->coordIndex.set1Value(count_lines++, i - 4);
+				aLines->coordIndex.set1Value(count_lines++, i);
+				aLines->coordIndex.set1Value(count_lines++, -1);
+
+				aLines->coordIndex.set1Value(count_lines++, i - 4);
+				aLines->coordIndex.set1Value(count_lines++, i + 1);
+				aLines->coordIndex.set1Value(count_lines++, -1);
+
+				aLines->coordIndex.set1Value(count_lines++, i - 3);
+				aLines->coordIndex.set1Value(count_lines++, i + 2);
+				aLines->coordIndex.set1Value(count_lines++, -1);
+
+				aLines->coordIndex.set1Value(count_lines++, i - 2);
+				aLines->coordIndex.set1Value(count_lines++, i + 3);
+				aLines->coordIndex.set1Value(count_lines++, -1);
+			}
+			aLines->coordIndex.set1Value(count_lines++, i);
+			aLines->coordIndex.set1Value(count_lines++, i + 1);
+			aLines->coordIndex.set1Value(count_lines++, i + 2);
+			aLines->coordIndex.set1Value(count_lines++, i + 3);
+			aLines->coordIndex.set1Value(count_lines++, i + 4);
+			aLines->coordIndex.set1Value(count_lines++, -1);
+			i += numShapeVertices - 1;
+		}
+	}
+	SoWriteAction wa;
+	wa.getOutput()->openFile("sails.iv");
+	wa.apply(fLoftCoords);
+	wa.apply(aFaces);
+	wa.apply(aLines);
+	wa.getOutput()->closeFile();
+	aFaces->unref();
+	aLines->unref();
+#endif // MAKE_SAILS
+
+}
 SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : full-length  */)
 {
     // we take the y-value and interpolate a z-value...
@@ -336,170 +503,7 @@ void Extruder::print_matrix(char * label, SbMatrix mat)
      fclose(fp);
 }
 
-// generate the loft and store it locally...
-void Extruder::makeLoftObject() 
-{
-	TRACE("makeLoftObject()\n");
 
-    fLoftCoords->point.deleteValues(0);
-    fLoftFaces->coordIndex.deleteValues(0);
-	fLoftFaces->setName(SbName("tree"));
-    // get number of shape vertices
-    int numShapeVertices = fShapeCoords->point.getNum();  
-    // get number of path vertices
-    int numPathVertices  = fLoftPathCoords->point.getNum();  //loft path usually starts at 0,0,0
-    int fLoftCoordsCount = 0;
-
-    for (int i = 0; i < numPathVertices; i++) {
-        SbMatrix mat;
-        mat.makeIdentity();
-        // apply twist...
-        float twist = fLoftTwistCoords->point[i][1];
-        SbRotation twistRotation(SbVec3f(0,0,1),twist);
-        mat.setRotate(twistRotation);   // !!!! best place to twist!
-
-        // rescale the section to give true corners...
-        // this seems to work only in the x direction !!!
-        if (/*fAntiSquish && */ i != 0 && i != numPathVertices - 1 ) {
-            float deflection1 = atan2 (( fLoftPathCoords->point[i][1] - fLoftPathCoords->point[i-1][1]) , 
-                (  fLoftPathCoords->point[i][0] - fLoftPathCoords->point[i-1][0] ));
-            float deflection2 = atan2 (( fLoftPathCoords->point[i+1][1] - fLoftPathCoords->point[i][1]) , 
-                (  fLoftPathCoords->point[i+1][0] - fLoftPathCoords->point[i][0] ));
-            deflection1 -= deflection2;
-            deflection1 /= 2;
-            //if(abs(deflection1) < .0001) 
-            //{} 
-            SbMatrix mat00;
-            float scaleFactor = fabs(1/cos(deflection1));
-            mat00.setScale(SbVec3f(scaleFactor, 1, 1));
-            mat *= mat00;
-        }
-        // apply the fractal scale factor (normally 1.0)
-        SbMatrix fractal_scale_matrix;
-        fractal_scale_matrix.setScale(fFractalScale);
-        mat *= fractal_scale_matrix; 
-
-        // apply the loft scale...
-        int count = 0;
-        SbMatrix mat0;
-        mat0.setScale(fLoftScaleCoords->point[i]);
-        mat *= mat0;
-        SoMFVec3f scaledCoords;
-        scaledCoords.deleteValues(0, -1);
-        int scaledCoordsCount = 0;
-        for (int j = 0; j < numShapeVertices; j++) {
-            SbVec3f result;
-            mat.multVecMatrix(fShapeCoords->point[j], result);
-            scaledCoords.set1Value(j, result);			
-        }
-        if(fThickness > .0001)
-            scaleCoordsForThickness(scaledCoords);
-
-        // finished scaling and offsetting, now continue matrix operations...
-        SbMatrix   mat1;
-        SbMatrix   mat2;
-        SbRotation rot;
-        SbRotation rot3(SbVec3f(1,0,0), 1.5707963267);
-        mat1.setRotate(rot3);
-        SbVec3f translate = fLoftPathCoords->point[i];
-        mat2.setTranslate(translate);
-        // rot = pitch, roll, yaw
-        if (0 == i)
-            rot = this->getPRY(fLoftPathCoords->point[i], fLoftPathCoords->point[i+1]);
-        else if (i == numPathVertices - 1)
-            rot = this->getPRY(fLoftPathCoords->point[i-1], fLoftPathCoords->point[i]);
-        else
-            rot = this->interpolatePRY2(fLoftPathCoords->point[i - 1], 
-                                        fLoftPathCoords->point[i],
-                                        fLoftPathCoords->point[i + 1]);
-        SbMatrix mat3;
-        mat3.setRotate(rot);
-        SbMatrix finalMat;
-        finalMat.makeIdentity();
-        finalMat *= mat1;  // rotate 90 degrees in the x axis
-        finalMat *= mat3;  // rotate half the interior vector angle
-        finalMat *= mat2;  // translate the shape to the loft path coordinates
-        
-        // generate the lofted shape at the current path vertex...
-        for (int j = 0; j < numShapeVertices; j++) {
-            SbVec3f result;
-            finalMat.multVecMatrix(scaledCoords[j], result);
-            fLoftCoords->point.set1Value(fLoftCoordsCount++, result);
-        }
-    }
-
-    // now generate IndexedFaceSet coordinate indices...
-    SoCoordinate3 * new_coords = new SoCoordinate3;
-    new_coords -> ref();
-    int count = 0;
-    fUpperLimit = fLoftPathCoords->point.getNum()-1;
-    fLowerLimit = 0;
-    for( int jj = 0; jj < numShapeVertices - 1; jj++) {
-        for (int i = jj + fLowerLimit * numShapeVertices; i < jj + fUpperLimit * numShapeVertices; i++) {
-            fLoftFaces->coordIndex.set1Value(count++, i);
-            fLoftFaces->coordIndex.set1Value(count++, i + 1);
-            fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices);
-            fLoftFaces->coordIndex.set1Value(count++, -1);
-            fLoftFaces->coordIndex.set1Value(count++, i + 1);
-            fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices + 1);
-            fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices);
-            fLoftFaces->coordIndex.set1Value(count++, -1);
-            i += numShapeVertices - 1;
-        }
-    }
-	// generate "sails.iv", transverse faces as sails along the form
-    SoIndexedFaceSet * aFaces = new SoIndexedFaceSet;
-	SoIndexedLineSet * aLines = new SoIndexedLineSet;
-    aFaces->ref();
-	aLines->ref();
-    count = 0;
-	int count_lines = 0;
-    // for( int jj = 0; jj < numShapeVertices - 1; jj++) {    
-    for( int jj = 0; jj < 1; jj++) {
-        for (int i = jj + fLowerLimit * numShapeVertices; i < jj + fUpperLimit * numShapeVertices; i++){
-            aFaces->coordIndex.set1Value(count++, i);
-            aFaces->coordIndex.set1Value(count++, i + 1);
-            aFaces->coordIndex.set1Value(count++, i + 2);
-            aFaces->coordIndex.set1Value(count++, -1);
-            aFaces->coordIndex.set1Value(count++, i );
-            aFaces->coordIndex.set1Value(count++, i + 2);
-            aFaces->coordIndex.set1Value(count++, i + 3);
-            aFaces->coordIndex.set1Value(count++, -1);
-            if(i > 0) {
-				aLines->coordIndex.set1Value(count_lines++, i-4);
-				aLines->coordIndex.set1Value(count_lines++, i);
-				aLines->coordIndex.set1Value(count_lines++, -1);
-
-				aLines->coordIndex.set1Value(count_lines++, i-4);
-				aLines->coordIndex.set1Value(count_lines++, i+1);
-				aLines->coordIndex.set1Value(count_lines++, -1);
-				
-				aLines->coordIndex.set1Value(count_lines++, i-3);
-				aLines->coordIndex.set1Value(count_lines++, i+2);
-				aLines->coordIndex.set1Value(count_lines++, -1);
-
-				aLines->coordIndex.set1Value(count_lines++, i -2);
-				aLines->coordIndex.set1Value(count_lines++, i+3);
-				aLines->coordIndex.set1Value(count_lines++, -1);
-			}
-			aLines->coordIndex.set1Value(count_lines++, i);
-			aLines->coordIndex.set1Value(count_lines++, i+1);
-			aLines->coordIndex.set1Value(count_lines++, i+2);
-			aLines->coordIndex.set1Value(count_lines++, i+3);
-			aLines->coordIndex.set1Value(count_lines++, i+4);
-			aLines->coordIndex.set1Value(count_lines++, -1);
-			i += numShapeVertices - 1;
-        }
-    }
-    SoWriteAction wa;
-    wa.getOutput()->openFile("sails.iv");
-    wa.apply(fLoftCoords);
-    wa.apply(aFaces);
-	wa.apply(aLines);
-    wa.getOutput()->closeFile();
-    aFaces->unref();
-	aLines->unref();
-}
 
 /*
 SbVec3f Extruder::GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVec3f ptB2)

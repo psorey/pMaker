@@ -25,7 +25,7 @@ public:
     SoCoordinate3       * fVScaleCoords;            // if fVScaleCoords is NULL we use fHScaleCoords for vertical scale
     SoCoordinate3       * fTwistCoords;             // can be NULL...
     bool                fClosedShape;
-    bool                fEqualScale;
+    //bool                fEqualScale;
     // processed...
     SoCoordinate3       * fLoftScaleCoords;
     SoCoordinate3       * fLoftTwistCoords;
