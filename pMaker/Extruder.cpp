@@ -47,7 +47,7 @@ Extruder::Extruder(void)    // does no transformations on input data other than 
     fLoftTwistCoords->ref(); 
     fClosedShape       = TRUE;
     fFractalScale      = 1.0;
-    fEqualScale        = TRUE;
+    fEqualScale        = FALSE;
     fThickness         = 0.0;
 }
 
@@ -197,13 +197,13 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 		TRACE("sc = %f  \n", currentLength/totalLength);
         fLoftScaleCoords->point.set1Value(i, sc);
 	  }
-	  int cc= 0;
-	  for(int i=0; i<fHScaleCoords->point.getNum(); i++) {
-		SbVec3f loc = fHScaleCoords->point[i];
-	  }
+	  //int cc= 0;
+	 // for(int i=0; i<fHScaleCoords->point.getNum(); i++) {
+	//	SbVec3f loc = fHScaleCoords->point[i];
+	 // }
       fLoftScaleCoords->point.set1Value(numLoftPathCoords - 1, 
         SbVec3f(fHScaleCoords->point[num_hscale_coords - 1][1], 
-        fVScaleCoords->point[num_vscale_coords - 1][1], 1.0)); 
+        fVScaleCoords->point[num_vscale_coords - 1][1], 0.0)); 
 		//fHScaleCoords->point[num_hscale_coords - 1][1], 1.0)); 
 	}
 	//test_scales->copyFieldValues(fLoftScaleCoords);
@@ -255,11 +255,11 @@ SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : f
             }
         }
     }
-    if (NULL == fVScaleCoords || fVScaleCoords->point.getNum() == 2) {      // we're done...
-        vScale = hScale;
-		TRACE("not doing v-scale\n");
-        return SbVec3f(hScale, hScale, 1);
-    }
+    //if (NULL == fVScaleCoords || fVScaleCoords->point.getNum() == 2) {      // we're done...
+    //    vScale = hScale;
+	//	TRACE("not doing v-scale\n");
+    //    return SbVec3f(hScale, hScale, 1);
+    //}
 	TRACE("doing v-scale\n");
     int num_vscale_coords = fVScaleCoords->point.getNum();
     float vLength = length * fVScaleCoords->point[num_vscale_coords -1][0];
@@ -297,7 +297,7 @@ SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : f
             }
         }
     }
-    return SbVec3f(hScale, vScale, 1);
+    return SbVec3f(hScale, vScale, 0);
 }
 
 
