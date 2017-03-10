@@ -20,7 +20,7 @@
 #include <fstream>
 #include <string>
 
-using namespace std;
+//using namespace std;
 
 
 IMPLEMENT_SERIAL( FractalTreeSpec, CObject, 1 )

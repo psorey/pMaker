@@ -1,9 +1,10 @@
+#pragma once
 // pMakerView.h : interface of the CpMakerView class
 //
 #include <Inventor/Win/SoWin.h>
 #include <Inventor/Win/viewers/SoWinExaminerViewer.h>
 #include "resource.h"
-#pragma once
+
 
 class FractalTreeMaker;
 class FractalTreeSpec;
@@ -31,7 +32,7 @@ class MarkerDialog;
 class SoMFVec3f;
 class SoEventCallback;
 class Extruder;
-class Flattener;
+//class Flattener;
 
 
 
@@ -48,7 +49,7 @@ public:
 	BOOL                    fAntiSquish;
     SoWinExaminerViewer     *viewer;
     Extruder                *fExtruder;
-	Flattener               *fFlattener;
+	//Flattener               *fFlattener;
 
 	CExaminerDialog*	    threeDDlg;
 	CExaminerDialog*	    vertDlg;
@@ -78,6 +79,7 @@ public:
 	SoCoordinate3*          vScaleCoords;
 	SoCoordinate3*          hScaleCoords;
 	SoCoordinate3*          twistCoords;
+	float                   thickness;
 	SoCoordinate3*          sectionCoords;  // change to shapeCoords
 	SoCoordinate3*          threeDSplineCoords;
 	SoCoordinate3*          vertSplineCoords;
@@ -101,13 +103,6 @@ public:
 	SoTransformBoxManip*	fTransformBox;
 	SoSeparator*			loftRoot;
     SoSeparator*            treeRoot;
-//	SoCoordinate3*			loftCoords;         /// not using these three
-//	SoIndexedFaceSet*		loftFaces;          ///
-//	SoMaterial*				loftMaterial;       ///
-//	SoCoordinate3*			loftPathCoords; 
-//	SoCoordinate3*			loftScaleCoords;    /// combined vertCoords and horizCoords;
-//  SoCoordinate3*          loftScale2Coords;   /// for 2nd level scaling
-//  SoCoordinate3*          loftScale2Center;
 
 	SoSeparator*			backgroundSep;
     bool                    fSearchBackground;
@@ -122,32 +117,14 @@ public:
 
 // Operations
 public:
-//    static	void		    sensorCB(void *data, SoSensor *sensor);
+//  static	void		    sensorCB(void *data, SoSensor *sensor);
     static  void            mouseMoved(void *,SoEventCallback *eventCB);
     static	SoNode*		    findChildOfType(SoGroup * parent, SoType typeId);
 			SoNode*		    findNodeByName(SoGroup *parent, char *name);
 			SoPath*		    FindPathToNode(SoGroup* parent, SoNode* node);
-	static	float           dist(SbVec3f pt1, SbVec3f pt2);
-//	static	SbRotation	    interpolatePRY(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
-//	static	SbRotation	    interpolatePRY2(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
-//	static	SbRotation	    interpolatePRY3(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
-//	static	SbRotation	    getPRY(SbVec3f pt1, SbVec3f pt2);
-//            SbRotation      interpolatePRY2_Align_with_Reference_Centerline(int whichCenterlinePoint);  
-//            float		    interpolateZ(float);
-//	        SbVec3f		    interpolateScale(float);
-//            SbVec3f         interpolateScale2(float); // for USE_SECOND_SCALE
-//			void		    make3dPath();
-//			void		    makeLoftObject();				
-//			void		    flatten(SoCoordinate3* tdCoords, SoCoordinate3* flatCoords);
-//	static	double		    hypotenuse( double xside, double yside );
 			void		    setUpperLower(int upper, int lower) { fUpperLimit = upper; fLowerLimit = lower; }
-//	static	double		    GetTheta(SbVec3f pt1, SbVec3f pt2);
-//	static  double          GetTheta(double ptAx, double ptAy, double ptBx, double ptBy);
-//	static  double          GetTheta(double sideX, double sideY);
 			SbVec3f		    GetIntersection(SbVec3f ptA1, SbVec3f ptA2,SbVec3f ptB1, SbVec3f ptB2);
 			SbVec3f		    CalcVectorPoint(SbVec3f pt, float length, float theta);
-//	static  double          GetVectorAngle(double a1, double a2, double a3, double b1, double b2, double b3);
-//            void            getSegmentCoords(int whichSegment, SoMFVec3f& segmentCoords);
             int             getNumPathCoords();
             int             getNumSides();   // used in marker dialog...
             CString         GetFilename(CString def_ext, CString wildcard, CString dialogTitle);
@@ -158,8 +135,6 @@ public:
                                                       SoCoordinate3 * _twistCoords);
             int            ReadCoordinate3(CString filename, SoCoordinate3 *coords);
             bool           isUsingVScale(void);
-// for testing:
-            void           trace_SoCoordinate3(char * label, SoCoordinate3 * coords);
 
 // Overrides
 public:

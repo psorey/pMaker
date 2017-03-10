@@ -1,5 +1,4 @@
-#if !defined(EXTRUDER__H)
-#define EXTRUDER__H
+#pragma once
 
 // #define DO_TRACE
 
@@ -38,10 +37,11 @@ public:
     int                 fUpperLimit;
     int                 fLowerLimit;
     float               fFractalScale;               // overall scale
+	Flattener           * fFlattener;
 
 // member functions:
 
-    Extruder(void);
+    Extruder();
     ~Extruder();
 
 // exposed functions...
@@ -52,6 +52,7 @@ public:
                           SoCoordinate3 * hScaleCoords, 
                           SoCoordinate3 * vScaleCoords,   // if NULL then hScaleCoords will be substituted
                           SoCoordinate3 * twistCoords,
+		                  float           thickness,
                           bool flatten);
 
     SoSeparator * extrude_fractal(SoCoordinate3 * shapeCoords, 
@@ -75,22 +76,20 @@ public:
     SoSeparator * createExtrusionNode(void);
  // private:
  // utilities...
-    double      dist(SbVec3f pt1, SbVec3f pt2);
+ //   double      dist(SbVec3f pt1, SbVec3f pt2);
     SbVec3f     interpolateScale(double length /* really a ratio of length : full-length  */);
     SbVec3f     interpolateTwist(float length);
     double      GetTheta(SbVec3f pt1, SbVec3f pt2);
     double      GetTheta(double ptAx, double ptAy, double ptBx, double ptBy);
     double      GetTheta(double sideX, double sideY);
-    SbRotation  interpolatePRY(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
+   // SbRotation  interpolatePRY(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
     SbRotation  interpolatePRY2(SbVec3f pt1, SbVec3f pt2, SbVec3f pt3);
     SbRotation  getPRY(SbVec3f pt1, SbVec3f pt2);
-    SbVec3f     GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVec3f ptB2);
+    //SbVec3f     GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVec3f ptB2);
 
     // temporary functions for testing...
     void        print_matrix(char * label, SbMatrix mat);
-    void        trace_SoCoordinate3(char * label, SoCoordinate3 * coords);
-    void        trace_SbVec3f(char * label, SbVec3f coords);
-    void        trace_SbMatrix(char * label, SbMatrix mat); // by observing the matrix's effect on a vector...
+    //void        trace_SoCoordinate3(char * label, SoCoordinate3 * coords);
+   // void        trace_SbVec3f(char * label, SbVec3f coords);
+   //  void        trace_SbMatrix(char * label, SbMatrix mat); // by observing the matrix's effect on a vector...
 };
-
-#endif

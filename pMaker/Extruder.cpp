@@ -50,6 +50,7 @@ Extruder::Extruder(void)    // does no transformations on input valuesF other th
     fFractalScale      = 1.0;
     //fEqualScale        = FALSE;
     fThickness         = 0.0;
+	fFlattener = new Flattener;
 }
 
 Extruder::~Extruder(){
@@ -57,6 +58,7 @@ Extruder::~Extruder(){
     if(NULL != fLoftFaces) fLoftFaces->unref();
     if(NULL != fLoftScaleCoords) fLoftScaleCoords->unref();
     if(NULL != fLoftTwistCoords) fLoftTwistCoords->unref();
+	if (NULL != fFlattener) delete fFlattener;
 }
 
 
@@ -65,6 +67,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
                                 SoCoordinate3 * hScaleCoords, 
                                 SoCoordinate3 * vScaleCoords,
                                 SoCoordinate3 * twistCoords,
+	                            float			thickness,
                                 bool            flatten) 
 {
     fShapeCoords     = shapeCoords;
@@ -73,7 +76,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     fVScaleCoords    = vScaleCoords;
     fTwistCoords     = twistCoords;
     fFractalScale    = 1.0;   // already initialized in constructor...
-    fThickness       = 0;       //
+	fThickness = thickness; // 0;       //
 	TRACE("Extrude:\n");
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
@@ -83,7 +86,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
 	//Inspect::Coordinate3("fVScaleCoords", fVScaleCoords);
 
     if(TRUE == flatten) 
-         Flattener::flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
+         fFlattener->flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
 
     SoSeparator        * returnNode = new SoSeparator;
     SoShapeHints       * hints = new SoShapeHints;
@@ -93,6 +96,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     
     returnNode->addChild(hints);
     returnNode->addChild(this->createExtrusionNode()); // copy internal extrusion data create new scene subtree. 
+
     return returnNode;
 }
 
@@ -125,7 +129,7 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     this->makeLoftObject();             //
 
     if(TRUE == flatten) 
-         Flattener::flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
+         fFlattener->flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
 
     SoShapeHints       * hints = new SoShapeHints;
 	hints->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
@@ -134,6 +138,8 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     
     returnNode->addChild(hints);
     returnNode->addChild(this->createExtrusionNode()); // copy internal extrusion data to create new scene subtree. 
+
+
     return returnNode;
 }
 
@@ -156,8 +162,8 @@ int Extruder::scaleCoordsForThickness(SoMFVec3f & sectionCoords)
     //Inspect::Vec3f("sectionCoords[0]", sectionCoords[0]);
     //Inspect::Vec3f("sectionCoords[1]", sectionCoords[1]);
 
-    double dist = (close_point - origin).length();
-    double ratio = (dist - fThickness) / dist;   //!!!
+    double dista = (close_point - origin).length();
+    double ratio = (dista - fThickness) / dista;   //!!!
 
     begin_matrix.setScale(ratio);
 
@@ -179,7 +185,7 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 	//SoCoordinate3 * test_x_locations = new SoCoordinate3;
 
     int numLoftPathCoords = fLoftPathCoords->point.getNum();
-	TRACE("numLoftPathCords = %d\n", numLoftPathCoords);
+	//TRACE("numLoftPathCords = %d\n", numLoftPathCoords);
     // get total length of horiz line...
     int num_vscale_coords = fVScaleCoords->point.getNum();
     int num_hscale_coords = fHScaleCoords->point.getNum();
@@ -188,15 +194,15 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 	if(numLoftPathCoords > 2) { 
 	  // get total length of fLoftPathCoords
       for (int i = 1; i < numLoftPathCoords; i++) {
-          totalLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
+          totalLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]).length();
 	  }
       fLoftScaleCoords->point.deleteValues(0, -1);
      // trying to fix begin * end:  +fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
 	  fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
       for (int i = 1; i < numLoftPathCoords -1; i++) {
-        currentLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
+        currentLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]).length();
         SbVec3f sc = interpolateScale(currentLength / totalLength);
-		TRACE("sc = %f  \n", currentLength/totalLength);
+		//TRACE("sc = %f  \n", currentLength/totalLength);
         fLoftScaleCoords->point.set1Value(i, sc);
 	  }
 	  //int cc= 0;
@@ -477,12 +483,12 @@ void Extruder::makeLoftTwistCoords()  // this only needs to be called when the l
     double totalLength = 0.0;
    // for (int i = 0; i < numLoftPathCoords - 1; i++)
     for (int i = 0; i < numLoftPathCoords; i++)
-        totalLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]);
+        totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
     double currentLength = 0.0;
     fLoftTwistCoords->point.deleteValues(0);
     fLoftTwistCoords->point.setValue(fTwistCoords->point[0][1], fTwistCoords->point[0][1], 1.0); 
     for (int i = 1; i < numLoftPathCoords -1; i++) {
-        currentLength += dist(fLoftPathCoords->point[i], fLoftPathCoords->point[i-1]);
+        currentLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i-1]).length();
         SbVec3f sc = interpolateTwist(currentLength / totalLength);
         fLoftTwistCoords->point.set1Value(i, sc);
     }
@@ -540,6 +546,14 @@ SoSeparator * Extruder::createExtrusionNode(void)
     loftFaces->copyFieldValues(fLoftFaces);
     brRoot->addChild(loftCoords);
     brRoot->addChild(loftFaces);
+	SoMaterial  *line_material = new SoMaterial;
+	SoDrawStyle *draw_style = new SoDrawStyle;
+	SoLineSet   *line_set = new SoLineSet;
+	line_material->diffuseColor.setValue(1, 0, 0);
+	draw_style->lineWidth.setValue(2);
+	brRoot->addChild(line_material);
+	brRoot->addChild(draw_style);
+	brRoot->addChild(line_set);
     return brRoot;
 }
 
@@ -614,7 +628,7 @@ SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_
             // ii += numShapeVertices - 1;
         }
     }
-    Flattener::flatten_polylines(this->fLoftCoords, numShapeVertices - 1, numPathVertices); 
+    fFlattener->flatten_polylines(this->fLoftCoords, numShapeVertices - 1, numPathVertices); 
 
     SoWriteAction wa;
     wa.getOutput()->openFile("test.iv");
@@ -637,12 +651,7 @@ SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_
     return returnNode;
 }
 
-double Extruder::dist(SbVec3f pt1, SbVec3f pt2) {
-    double   distance;
-    distance = sqrt((pt2[0] - pt1[0])*(pt2[0] - pt1[0]) \
-        +(pt2[1] - pt1[1])*(pt2[1] - pt1[1]));
-    return distance;
-}
+
 
 double Extruder::GetTheta(SbVec3f pt1, SbVec3f pt2) {
     return  atan2 (( pt2[1] - pt1[1]) , ( pt2[0] - pt1[0] ));   

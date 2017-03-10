@@ -1,3 +1,4 @@
+#pragma once
 //
 // A very specialized node; this manipulator completely takes care of
 // editing a set of line segments.

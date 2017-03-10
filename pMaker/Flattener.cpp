@@ -17,9 +17,49 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/actions/SoWriteAction.h>
+#include <Inventor/actions/SoSearchAction.h>
 
-Flattener::Flattener(void) {}
-Flattener::~Flattener(void) {}
+//Flattener::Flattener(void);
+
+Flattener::Flattener(void) {
+	fPlacedCoords = NULL;
+	SoInput myInput;
+	myInput.openFile("c:\\placed_coords.iv");
+	if (!myInput.isValidFile()) {
+		AfxMessageBox("no placed_coords.iv file...");
+		return;
+	}
+	SoSeparator *tempSep = new SoSeparator;
+	tempSep->ref();
+	tempSep->addChild(SoDB::readAll(&myInput));
+	myInput.closeFile();
+
+	SoCoordinate3 *tempCoords = (SoCoordinate3 *)findChildByType(tempSep, SoCoordinate3::getClassTypeId());
+	if(tempCoords != NULL){
+		if (fPlacedCoords == NULL) fPlacedCoords = new SoCoordinate3;
+		fPlacedCoords->ref();
+		fPlacedCoords->copyFieldValues(tempCoords);
+	}
+	tempSep->unref();
+}
+
+
+Flattener::~Flattener(void) {
+	if (fPlacedCoords != NULL) fPlacedCoords->unref();
+}
+
+
+SbVec3f Flattener::GetVectorPoint(SbVec3f pt, float length, float theta)
+{
+	SbVec3f temp;
+	temp[0] = pt[0] + length * cos(theta);
+	temp[1] = pt[1] + length * sin(theta);
+	temp[2] = 0.0;
+	return temp;
+}
+
+
+
 
 ///////// * Using this one  * ///////////
 void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords) 
@@ -52,8 +92,8 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	tempSep->addChild(newCoords);
 	SoLineSet *newLines = new SoLineSet;
 	tempSep->addChild(newLines);
-	
-    int indexCount = 0;
+    
+	int indexCount = 0;
 	int index;
 
 	FILE* fp = fopen(m_strAddFile, "w");
@@ -66,7 +106,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		newCoords->point.deleteValues(0);
 		flatCoords->point.deleteValues(0);
 		for ( int k = j; k < loftCoords->point.getNum() - 1; k += (numSides + 1)) {
-            TRACE("k =  %d\n", k);
+            //TRACE("k =  %d\n", k);
 			newCoords->point.set1Value(count++, loftCoords->point[k]);
 			newCoords->point.set1Value(count++, loftCoords->point[k + 1]);
 		}
@@ -99,15 +139,113 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		}
         writeDXF->WriteZero();
 	}
+	//////////////////////////////////////////////////////////////////////////////
+	// if an object is being placed on the flattened geometry...
+	if (fPlacedCoords != NULL) {
+		// place_scaled_objects(flatCoords);  // place the 
+		// split the flattened polyline into two lines...
+		SoCoordinate3 * line1 = new SoCoordinate3;
+		SoCoordinate3 * line2 = new SoCoordinate3;
+		line1->ref();
+		line2->ref();
+		int num = flatCoords->point.getNum();
+		for (int i = 0; i < num - 1; i += 2) {
+			line1->point.set1Value(i / 2, flatCoords->point[i / 2]);
+		}
+		for (int i = 1; i < num - 1; i += 2) {
+			line2->point.set1Value(i / 2, flatCoords->point[(i + 1) / 2]);
+		}
+		// calculate total lengths of lines
+		double line1length = 0.0;
+		double line2length = 0.0;
+		for (int i = 0; i < line1->point.getNum()-2; i++) {
+			line1length += (line1->point[i + 1] - line1->point[i]).length();
+		}
+	    for (int i = 0; i < line2->point.getNum() - 2; i++) {
+		    line2length += (line2->point[i + 1] - line2->point[i]).length();
+	    }
+		//writeDXF->WriteLWPOLYLINE(line1);
+		// scale fPlacedCoords along lines
+		// 
+		float begin_spacing = 2.75; // the starting distance between placed objects
+		float end_spacing = 1.8;
+		float begin_scale = 1;
+		float end_scale = .68;
+		float current_distance = 0.0;   // 
+		// place the first at distance 0
+
+		//SoMFVec3f placed_polyline;
+		SbMatrix mat;
+		float distance = 0.0;
+		TRACE("line1length = %f\n", line1length);
+		while(distance < line1length) {
+			float ratio = distance / line1length;
+			TRACE("ratio = %f\n", ratio);
+
+			float scale = begin_scale - ((begin_scale - end_scale) * ratio);
+			float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
+			mat.identity();
+			mat.setScale(scale);
+			current_distance = 0.0;
+			// which line segment are we looking at
+			int segment = 0;
+			for (segment = 0; current_distance < distance; segment++) {
+				current_distance += (line1->point[segment + 1] - line1->point[segment]).length();
+			}
+			SbVec3f vector = line1->point[segment + 1] - line1->point[segment];
+			float rot = atan2(vector[1], vector[0]);
+			mat.setRotate(SbRotation(SbVec3f(0,1.0,0),rot));
+			// find 'insertion' point, rotation and scale
+			SbVec3f insert_point = findPointOnLine(line1, distance);
+			mat.setTranslate(insert_point);
+			SoCoordinate3 * insert_coords = new SoCoordinate3;
+			insert_coords->ref();
+			for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {
+				SbVec3f transformed_coord;
+				mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
+				insert_coords->point.set1Value(i, transformed_coord);
+			}
+			writeDXF->WriteLWPOLYLINE(insert_coords);
+			insert_coords->unref();
+			distance += spacing;
+			TRACE("distance = %f\n", distance);
+		}
+		line1->unref();
+		line2->unref();
+	}
+	////////////////////////////////////////////////////////////////////////////////
     writeDXF->WriteDXFEndsec();
     writeDXF->WriteEndDXF();
 	fclose(fp);
 	tempSep->unref();
 	flatCoords->unref();
 }	
+/*
 
+*/ // !!!!
+
+
+SbVec3f Flattener::findPointOnLine(SoCoordinate3 * line, float desired_distance) {
+	SbVec3f point;
+	float current_distance = 0.0;
+	for (int i = 0; i < line->point.getNum() - 2; i++) {
+		float current_segment_length = (line->point[i + 1] - line->point[i]).length();
+		current_distance += current_segment_length;
+		if (current_distance > desired_distance) {
+			float portion = current_segment_length - (current_distance - desired_distance);
+			SbVec3f vector = line->point[i + 1] - line->point[i];
+			float theta = atan2(vector[1], vector[0]);
+			point = GetVectorPoint(line->point[i], portion, theta);
+			return point;
+		}
+	}
+}
+
+
+
+// UNUSED..............................................................................
 // not using this one:
-void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords, CString filename) 
+/*void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords, CString filename) 
 {
 	SoCoordinate3* flatCoords = new SoCoordinate3;
 	flatCoords->ref();
@@ -161,6 +299,8 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	tempSep->unref();
 	flatCoords->unref();
 }
+*/
+
 
 
 void Flattener::flatten_quadrilaterals(SoCoordinate3 * loftCoords, int numSides, int numPathCoords)  // quadrilaterals
@@ -405,5 +545,21 @@ double Flattener::GetVectorAngle(double a1, double a2, double a3, double b1, dou
 }
 
 
+SoNode *
+Flattener::findChildByType(SoSeparator * parent, SoType typeId)
+{
+	SoSearchAction search;
+	SoPath *path;
+	SoNode *node;
+
+	search.setType(typeId, FALSE);
+	search.setInterest(SoSearchAction::FIRST);
+	search.apply(parent);
+
+	path = search.getPath();
+	if (path == NULL) return NULL;
+	node = path->getTail();
+	return node;
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // #define DO_TRACE

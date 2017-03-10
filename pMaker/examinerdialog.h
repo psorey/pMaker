@@ -1,3 +1,5 @@
+#pragma once
+
 // ivDialogDlg.h : header file
 //
 

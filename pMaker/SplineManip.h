@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SbPList.h>
 #include <Inventor/nodes/SoVertexProperty.h>

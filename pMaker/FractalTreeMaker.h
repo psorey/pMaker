@@ -35,7 +35,6 @@ public:
     Extruder              * fExtruder;
     FractalTreeSpec       * fts;
     SoSeparator           * test_root;
-    //SbMatrix                fLastPlacement;
 
     FractalTreeMaker(SoSeparator * fTreeRoot, FractalTreeSpec * tree_spec);
 	~FractalTreeMaker();

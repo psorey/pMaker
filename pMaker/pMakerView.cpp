@@ -6,7 +6,7 @@
 #include "pMakerDoc.h"
 #include "pMakerView.h"
 #include "Extruder.h"
-#include "Flattener.h"
+//#include "Flattener.h"
 #include "FractalTreeDialog.h"
 #include "FractalTreeMaker.h"
 #include "FractalTreeSpec.h"
@@ -147,7 +147,7 @@ CpMakerView::CpMakerView()
     viewer = NULL;
     fFractalTreeSpec = NULL;
     fExtruder = NULL;
-	fFlattener = NULL;
+//	fFlattener = NULL;
     //SoDB::init();
 }
 
@@ -156,7 +156,7 @@ CpMakerView::~CpMakerView()
     if (viewer != NULL)            delete viewer;
     if (fFractalTreeSpec != NULL)  delete fFractalTreeSpec;
     if (fExtruder != NULL)         delete fExtruder;
-	if (fFlattener != NULL)         delete fFlattener;
+//	if (fFlattener != NULL)         delete fFlattener;
 
     threeDCoords->unref();
     sectionCoords->unref();
@@ -241,7 +241,7 @@ void CpMakerView::OnInitialUpdate()
         p.showCmd = SW_SHOWMAXIMIZED;
         SetWindowPlacement(&p);
         fExtruder = new Extruder; // here???
-		fFlattener = new Flattener; 
+		//fFlattener = new Flattener; 
     }
     // clip plane nodes...(for cutting sections of loft object)
     fClipPlaneSep = NULL;
@@ -254,6 +254,7 @@ void CpMakerView::OnInitialUpdate()
     fClipIntersectionCoords = NULL;
     fClipIntersectionLines = NULL;
     fOffset = 0.0;
+	thickness = 0.0;
     fNumRotatedCopies = 1;
     threeDDlg = NULL;
     vertDlg = NULL;
@@ -523,10 +524,12 @@ void CpMakerView::OnShowDialog() // call this to regenerate the extrusion
     // if(abs((const long)((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0)) < 0.001) {
     //    branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->hScaleCoords, this->twistCoords, false );
     //} else {
-        branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, false );
+	TRACE("thickness = %f\n", thickness);
+	TRACE("test OnShowDialog()\n");         
+	branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, thickness, false );
     //}
     loftRoot->addChild(branch_sep);
-    TRACE("OnShowDialog()\n");   
+  
 }
 
 
@@ -652,9 +655,9 @@ void CpMakerView::OnLoadConstructionData()
     
     loftRoot->removeAllChildren();
     if((vScaleCoords->point[0] - vScaleCoords->point[vScaleCoords->point.getNum() -1]).length() - 1.0 < 0.001) {
-        loftRoot->addChild(fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, hScaleCoords, twistCoords, false));
+		loftRoot->addChild(fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, hScaleCoords, twistCoords, thickness, false));
     } else {
-        loftRoot->addChild(fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, vScaleCoords, twistCoords, false));
+        loftRoot->addChild(fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, vScaleCoords, twistCoords, thickness, false));
     }
 }
 
@@ -686,14 +689,7 @@ CpMakerView::FindPathToNode(SoGroup* parent, SoNode* node)
     return path;
 }
 //
-float
-CpMakerView::dist (SbVec3f pt1, SbVec3f pt2)
-{
-    float   distance;
-    distance = sqrt((pt2[0] - pt1[0])*(pt2[0] - pt1[0]) \
-          +(pt2[1] - pt1[1])*(pt2[1] - pt1[1]));
-    return distance;
-}
+
 
 
 SoNode *
@@ -850,6 +846,8 @@ void CpMakerView::OnEditOffset()
     if (ret != IDOK) return;
 
     fOffset = dlg.fFloat;
+	thickness = dlg.fFloat;
+
     //this->make3dPath();
     //this->makeLoftObject();
 }
@@ -999,7 +997,7 @@ void CpMakerView::OnFlattenImportedCoords()
     //newCoords->point.deleteValues(0, -1);
     flatCoords->point.deleteValues(0, -1);
 
-    fFlattener->flatten(inputCoords, flatCoords);  
+    //fFlattener->flatten(inputCoords, flatCoords);  
 	write_dxf->WriteCoords(flatCoords);
 	/*
     int numVertices = flatCoords->point.getNum();
@@ -1841,7 +1839,9 @@ void CpMakerView::OnFileSaveAs()
 
 void CpMakerView::OnFlatten() //
 {
-    fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, vScaleCoords, twistCoords, true ); 
+	// why are we using pMakerView to hold "static" variables for Extruder?  Belong in a class 'ExtrusionParameters'. 
+	// fExtruder should be used instead to store the values.
+    fExtruder->extrude(sectionCoords, threeDCoords, hScaleCoords, vScaleCoords, twistCoords, thickness, true ); 
     return;
 }
 
