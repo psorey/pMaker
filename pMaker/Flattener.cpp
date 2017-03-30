@@ -148,27 +148,31 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		SoCoordinate3 * line2 = new SoCoordinate3;
 		line1->ref();
 		line2->ref();
+		int count = 0;
 		int num = flatCoords->point.getNum();
-		for (int i = 0; i < num - 1; i += 2) {
-			line1->point.set1Value(i / 2, flatCoords->point[i / 2]);
+		for (int i = 0; i < num; i+=2 )  {
+			line1->point.set1Value(count++, flatCoords->point[i]);
 		}
-		for (int i = 1; i < num - 1; i += 2) {
-			line2->point.set1Value(i / 2, flatCoords->point[(i + 1) / 2]);
+		count = 0;
+		for (int i = 1; i < num; i+=2) {
+			line2->point.set1Value(count++ , flatCoords->point[i]);
 		}
 		// calculate total lengths of lines
 		double line1length = 0.0;
 		double line2length = 0.0;
-		for (int i = 0; i < line1->point.getNum()-2; i++) {
+		for (int i = 0; i < line1->point.getNum() - 1; i++) {
 			line1length += (line1->point[i + 1] - line1->point[i]).length();
 		}
-	    for (int i = 0; i < line2->point.getNum() - 2; i++) {
+	    for (int i = 0; i < line2->point.getNum() - 1; i++) {
 		    line2length += (line2->point[i + 1] - line2->point[i]).length();
 	    }
-		//writeDXF->WriteLWPOLYLINE(line1);
-		// scale fPlacedCoords along lines
-		// 
-		float begin_spacing = 2.75; // the starting distance between placed objects
-		float end_spacing = 1.8;
+		TRACE("line1length = %f\n", line1length);
+		TRACE("line2length = %f\n", line2length);
+		writeDXF->WriteLWPOLYLINE(line1, "line1", -1);
+		writeDXF->WriteLWPOLYLINE(line2, "line2", -1);
+ 
+		float begin_spacing = 1.5; // the starting distance between placed objects
+		float end_spacing = 1.1;
 		float begin_scale = 1;
 		float end_scale = .68;
 		float current_distance = 0.0;   // 
@@ -177,39 +181,10 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		//SoMFVec3f placed_polyline;
 		SbMatrix mat;
 		float distance = 0.0;
-		TRACE("line1length = %f\n", line1length);
-		while(distance < line1length) {
-			float ratio = distance / line1length;
-			TRACE("ratio = %f\n", ratio);
+		//TRACE("line1length = %f\n", line1length);
+		insertPlacedCoords(0, writeDXF, line1, line1length, begin_spacing, end_spacing, begin_scale, end_scale);
+		insertPlacedCoords(1,  writeDXF, line2, line2length, begin_spacing, end_spacing, begin_scale, end_scale);
 
-			float scale = begin_scale - ((begin_scale - end_scale) * ratio);
-			float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
-			mat.identity();
-			mat.setScale(scale);
-			current_distance = 0.0;
-			// which line segment are we looking at
-			int segment = 0;
-			for (segment = 0; current_distance < distance; segment++) {
-				current_distance += (line1->point[segment + 1] - line1->point[segment]).length();
-			}
-			SbVec3f vector = line1->point[segment + 1] - line1->point[segment];
-			float rot = atan2(vector[1], vector[0]);
-			mat.setRotate(SbRotation(SbVec3f(0,1.0,0),rot));
-			// find 'insertion' point, rotation and scale
-			SbVec3f insert_point = findPointOnLine(line1, distance);
-			mat.setTranslate(insert_point);
-			SoCoordinate3 * insert_coords = new SoCoordinate3;
-			insert_coords->ref();
-			for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {
-				SbVec3f transformed_coord;
-				mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
-				insert_coords->point.set1Value(i, transformed_coord);
-			}
-			writeDXF->WriteLWPOLYLINE(insert_coords);
-			insert_coords->unref();
-			distance += spacing;
-			TRACE("distance = %f\n", distance);
-		}
 		line1->unref();
 		line2->unref();
 	}
@@ -220,15 +195,55 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	tempSep->unref();
 	flatCoords->unref();
 }	
-/*
 
-*/ // !!!!
+
+void Flattener::insertPlacedCoords(int side, WriteDXF * writeDXF, SoCoordinate3 *line, float linelength, float begin_spacing, float end_spacing, float begin_scale, float end_scale) {
+	float distance = 0.0;
+	float current_distance = 0.0;
+	while (distance < linelength) {
+		float ratio = distance / linelength;
+		float scale = begin_scale - ((begin_scale - end_scale) * ratio);
+		float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
+
+		current_distance = 0.0;
+		// which line segment are we looking at
+		int point = 0;
+		for (point = 0; current_distance < distance; point++) {
+			current_distance += (line->point[point + 1] - line->point[point]).length();
+		}
+		TRACE("current point = %d     numPoints = %d    \n", point, line->point.getNum());
+		SbVec3f vector = line->point[point + 1] - line->point[point];
+		float rot = atan2(vector[1], vector[0]);
+		// find 'insertion' point, rotation and scale
+		SbVec3f insert_point = findPointOnLine(line, distance);
+		SbRotation rotation;
+		if (side == 0) {
+			rotation = SbRotation(SbVec3f(0, 0, 1), rot + 1.507);
+		}
+		else {
+			rotation = SbRotation(SbVec3f(0, 0, 1), rot - 1.507);
+		}
+		SbMatrix mat;
+		mat.setTransform(insert_point, rotation, SbVec3f(scale, scale, scale));
+		SoCoordinate3 * insert_coords = new SoCoordinate3;
+		insert_coords->ref();
+		for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {
+			SbVec3f transformed_coord;
+			mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
+			insert_coords->point.set1Value(i, transformed_coord);
+		}
+		writeDXF->WriteLWPOLYLINE(insert_coords, "insert", -1);
+		insert_coords->unref();
+		distance += spacing;
+		//TRACE("distance = %f\n", distance);
+	}
+}
 
 
 SbVec3f Flattener::findPointOnLine(SoCoordinate3 * line, float desired_distance) {
 	SbVec3f point;
 	float current_distance = 0.0;
-	for (int i = 0; i < line->point.getNum() - 2; i++) {
+	for (int i = 0; i < line->point.getNum() - 1; i++) {
 		float current_segment_length = (line->point[i + 1] - line->point[i]).length();
 		current_distance += current_segment_length;
 		if (current_distance > desired_distance) {

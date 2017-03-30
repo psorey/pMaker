@@ -194,14 +194,15 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 	if(numLoftPathCoords > 2) { 
 	  // get total length of fLoftPathCoords
       for (int i = 1; i < numLoftPathCoords; i++) {
-          totalLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]).length();
+          totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
 	  }
       fLoftScaleCoords->point.deleteValues(0, -1);
      // trying to fix begin * end:  +fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
 	  fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
       for (int i = 1; i < numLoftPathCoords -1; i++) {
-        currentLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]).length();
+        currentLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
         SbVec3f sc = interpolateScale(currentLength / totalLength);
+		TRACE("current_length = %f\n", currentLength);
 		//TRACE("sc = %f  \n", currentLength/totalLength);
         fLoftScaleCoords->point.set1Value(i, sc);
 	  }
@@ -396,6 +397,7 @@ void Extruder::makeLoftObject()
 }
 SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : full-length  */)
 {
+	TRACE("ratio = %f\n", length);
     // we take the y-value and interpolate a z-value...
     int num_hscale_coords = fHScaleCoords->point.getNum();
     double hLength = length; // * fHScaleCoords->point[num_hscale_coords -1][0];
@@ -434,6 +436,14 @@ SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : f
 	//	TRACE("not doing v-scale\n");
     //    return SbVec3f(hScale, hScale, 1);
     //}
+	
+	
+	
+	return SbVec3f(hScale, hScale, 1);  // !!!!!!!
+
+
+
+
 	TRACE("doing v-scale\n");
     int num_vscale_coords = fVScaleCoords->point.getNum();
     float vLength = length * fVScaleCoords->point[num_vscale_coords -1][0];
