@@ -737,7 +737,7 @@ void CpMakerView::OnEditMultiples()
         
         float rotation = rotationIncrement * (i + 1);
         TRACE("rotation = %f\n", rotation);
-        tTrans->rotation.setValue(SbRotation(SbVec3f(0, 0, 1), rotation));
+        tTrans->rotation.setValue(SbRotation(SbVec3f(0, 1, 0), rotation));
         
         tSep->addChild(tTrans);
         tSep->addChild(loftRoot);

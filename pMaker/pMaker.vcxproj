@@ -135,6 +135,7 @@
     <ClCompile Include="HoleDialog.cpp" />
     <ClCompile Include="Influence.cpp" />
     <ClCompile Include="Interface.cpp" />
+    <ClCompile Include="Intersection.cpp" />
     <ClCompile Include="LineManip.cpp" />
     <ClCompile Include="LineManipHilight.cpp" />
     <ClCompile Include="MainFrm.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="HoleDialog.h" />
     <ClInclude Include="Influence.h" />
     <ClInclude Include="Interface.h" />
+    <ClInclude Include="Intersection.h" />
     <ClInclude Include="LineManip.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MarkerDialog.h" />

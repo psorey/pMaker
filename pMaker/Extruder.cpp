@@ -439,7 +439,7 @@ SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : f
 	
 	
 	
-	return SbVec3f(hScale, hScale, 1);  // !!!!!!!
+	//return SbVec3f(hScale, hScale, 1);  // !!!!!!!
 
 
 
