@@ -51,6 +51,7 @@ Extruder::Extruder(void)    // does no transformations on input valuesF other th
     //fEqualScale        = FALSE;
     fThickness         = 0.0;
 	fFlattener = new Flattener;
+	fShape2Coords = NULL;
 }
 
 Extruder::~Extruder(){
@@ -58,9 +59,9 @@ Extruder::~Extruder(){
     if(NULL != fLoftFaces) fLoftFaces->unref();
     if(NULL != fLoftScaleCoords) fLoftScaleCoords->unref();
     if(NULL != fLoftTwistCoords) fLoftTwistCoords->unref();
-	if (NULL != fFlattener) delete fFlattener;
+	if(NULL != fFlattener) delete fFlattener;
+	if (NULL != fShape2Coords) fShape2Coords->unref();
 }
-
 
 SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords, 
                                 SoCoordinate3 * loftPathCoords, 
@@ -78,6 +79,8 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     fFractalScale    = 1.0;   // already initialized in constructor...
 	fThickness = thickness; // 0;       //
 	TRACE("Extrude:\n");
+	fCalculatedPathLength = getPathLength();
+
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
@@ -193,9 +196,8 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
     double totalLength = 0.0;
 	if(numLoftPathCoords > 2) { 
 	  // get total length of fLoftPathCoords
-      for (int i = 1; i < numLoftPathCoords; i++) {
-          totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
-	  }
+	  totalLength = (double)fCalculatedPathLength; 
+
       fLoftScaleCoords->point.deleteValues(0, -1);
      // trying to fix begin * end:  +fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
 	  fLoftScaleCoords->point.set1Value(0, SbVec3f(fHScaleCoords->point[0][1], fVScaleCoords->point[0][1], 0.0)); // !!! was 1.0 ??
@@ -241,8 +243,11 @@ void Extruder::makeLoftObject()
 	// get number of path vertices
 	int numPathVertices = fLoftPathCoords->point.getNum();  //loft path usually starts at 0,0,0
 	int fLoftCoordsCount = 0;
+	float currentLength = 0.0;
 
 	for (int i = 0; i < numPathVertices; i++) {
+		if(i > 0)
+			currentLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
 		SbMatrix mat;
 		mat.makeIdentity();
 		// apply twist...
@@ -279,9 +284,16 @@ void Extruder::makeLoftObject()
 		SoMFVec3f scaledCoords;
 		scaledCoords.deleteValues(0, -1);
 		int scaledCoordsCount = 0;
+		SoMFVec3f interpolatedShapeCoords;
+		getShapeCoords(interpolatedShapeCoords, currentLength / fCalculatedPathLength); // test with this!!!!
+		// shapeCoords -- calculate if more than one cross-section -- based on % distance along path
+		// and store in scaledCoords
 		for (int j = 0; j < numShapeVertices; j++) {
 			SbVec3f result;
-			mat.multVecMatrix(fShapeCoords->point[j], result);
+			//TRACE("doing this\n");
+			// mat.multVecMatrix(fShapeCoords->point[j], result);
+			mat.multVecMatrix(interpolatedShapeCoords[j], result);
+
 			scaledCoords.set1Value(j, result);
 		}
 		if (fThickness > .0001)
@@ -490,9 +502,9 @@ void Extruder::makeLoftTwistCoords()  // this only needs to be called when the l
     int numLoftPathCoords = fLoftPathCoords->point.getNum();
     // get total length of horiz line...
     int num_twist_coords = fTwistCoords->point.getNum();
-    double totalLength = 0.0;
+	double totalLength = 0.0; // (double)fCalculatedPathLength; !!! what is wrong here?
    // for (int i = 0; i < numLoftPathCoords - 1; i++)
-    for (int i = 0; i < numLoftPathCoords; i++)
+    for (int i = 0; i < numLoftPathCoords; i++) // this should not work!
         totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
     double currentLength = 0.0;
     fLoftTwistCoords->point.deleteValues(0);
@@ -563,7 +575,7 @@ SoSeparator * Extruder::createExtrusionNode(void)
 	draw_style->lineWidth.setValue(2);
 	brRoot->addChild(line_material);
 	brRoot->addChild(draw_style);
-	brRoot->addChild(line_set);
+	//brRoot->addChild(line_set);
     return brRoot;
 }
 
@@ -603,7 +615,7 @@ SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_
     fLoftCoords->point.deleteValues(0);
     fLoftFaces->coordIndex.deleteValues(0);
     int numShapeVertices = num_sides + 1;
-    int numPathVertices  = 2;
+    int numPathVertices  = 2; 
     int fLoftCoordsCount = 0;
 
     // generate the lofted shape...
@@ -641,7 +653,7 @@ SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_
     fFlattener->flatten_polylines(this->fLoftCoords, numShapeVertices - 1, numPathVertices); 
 
     SoWriteAction wa;
-    wa.getOutput()->openFile("test.iv");
+    wa.getOutput()->openFile("test_mult_sec_loft.iv");
     wa.apply(fLoftCoords);
     
     SoLineSet* lineSet = new SoLineSet;
@@ -708,3 +720,45 @@ SbRotation Extruder::getPRY(SbVec3f pt1, SbVec3f pt2)
     return horizRot1;
 }
 
+void Extruder::getShapeCoords(SoMFVec3f & coords, float length_ratio)
+{
+	TRACE("length ratio = %f\n", length_ratio);
+
+	if (fShape2Coords == NULL) {
+		coords.copyFrom(fShapeCoords->point);
+	}
+	else {
+		for (int i = 0; i < fShapeCoords->point.getNum(); i++) {
+			SbVec3f vec = fShape2Coords->point[i] - fShapeCoords->point[i];
+			vec *= length_ratio;
+			SbVec3f interpolatedVec = fShapeCoords->point[i] + vec;
+			coords.set1Value(i, interpolatedVec);
+		}
+	}
+}
+
+float Extruder::getPathLength(void)  // use just once per extrusion
+{
+	int numLoftPathCoords = fLoftPathCoords->point.getNum();
+	float totalLength = 0.0;
+	// get total length of fLoftPathCoords
+	for (int i = 1; i < numLoftPathCoords; i++) {
+		totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
+	}
+	return totalLength;
+}
+
+float Extruder::getLengthRatio(int index)  // index is pathCoords vertex
+{
+	int numLoftPathCoords = fLoftPathCoords->point.getNum();
+	// get total length of horiz line...
+	int num_twist_coords = fTwistCoords->point.getNum();
+	float totalLength = 0.0;
+	for (int i = 0; i < numLoftPathCoords; i++)
+		totalLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
+	float currentLength = 0.0;
+	for (int i = 1; i <= index; i++) {
+		currentLength += (fLoftPathCoords->point[i], fLoftPathCoords->point[i - 1]).length();
+	}
+	return currentLength;
+}

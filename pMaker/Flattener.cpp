@@ -59,12 +59,7 @@ SbVec3f Flattener::GetVectorPoint(SbVec3f pt, float length, float theta)
 	return temp;
 }
 
-#define INSERT_COORDS 1
-#define STALK_SPACING 0
-#define SEPAL_SPACING 0
-#define GUIDE_SPACING 0
-#define ROCK_SPACING 0
-#define PETAL_SPACING 1
+
 
 
 ///////// * Using this one  * ///////////
@@ -144,6 +139,16 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		}
         writeDXF->WriteZero();
 
+
+
+#define INSERT_COORDS 1
+#define STALK_SPACING 0
+#define SEPAL_SPACING 0
+#define GUIDE_SPACING 0
+#define ROCK_SPACING 1
+#define PETAL_SPACING 0
+
+
 		////////////////////////////////////////////////////////////
 		// if an object is being placed on the flattened geometry...
 
@@ -156,7 +161,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 			line2->ref();
 			int count = 0;
 			int num = flatCoords->point.getNum();
-			for (int i = 0; i < num; i+=2 )  {
+			for (int i = 0; i < num; i+=2)  {
 				line1->point.set1Value(count++, flatCoords->point[i]);
 			}
 			count = 0;
@@ -176,8 +181,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 			writeDXF->WriteLWPOLYLINE(line1, layer, -1);
 			writeDXF->WriteLWPOLYLINE(line2, layer, -1);
 
-
-
+			// define variables and initialize with default value
 			float begin_spacing = 1.95; // the starting distance between placed objects
 			float end_spacing = 1.3;
 			float begin_scale = 1;
@@ -198,7 +202,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 				end_scale = .30;
 			}
 
-			if (GUIDE_SPACING) {
+			if (GUIDE_SPACING) {  // for stitching petals
 				begin_spacing = 6; // the starting distance between placed objects
 				end_spacing = 3;
 				begin_scale = 1;
@@ -213,10 +217,10 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 			}
 
 			if (PETAL_SPACING) {
-				begin_spacing = 1.95; // the starting distance between placed objects
-				end_spacing = 0.8;
-				begin_scale = 1.2;
-				end_scale = .70;
+				begin_spacing = 1.75; // the starting distance between placed objects
+				end_spacing = 0.8;  //0.96
+				begin_scale = 1.1;
+				end_scale = .570;
 			}
 
 			SbMatrix mat;
@@ -240,22 +244,25 @@ SbVec3f last_point = SbVec3f(0, 0, 0);
 int save_point = 0;
 
 
-void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF, SoCoordinate3 *line, float linelength, float begin_spacing, float end_spacing, float begin_scale, float end_scale) {
+void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF,    // 'fPlacedCoords' is a 2-D shape (the scallop), a series of line segments
+	                               SoCoordinate3 *line, float linelength,          // 'line' is a 2-D line which is the (left or right) outline of a flattened side
+	                               float begin_spacing, float end_spacing,         // 'spacing' is how far apart the placed coords are inserted onto 'line'
+	                               float begin_scale, float end_scale)             // 'scale' is the scale of the placed coords 
+{
 	float distance = 0.0;
 	float current_distance = 0.0;
-	while (distance < linelength) {  //
-		float ratio = distance / linelength;
+	while (distance < linelength) {              // 
+		float ratio = distance / linelength;     
 		float scale = begin_scale - ((begin_scale - end_scale) * ratio);
 		float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
 
 		current_distance = 0.0;
-		// which line segment are we looking at
+		// increment along points defining 'line'l
 		int point = 0;
 		for (point = 0; current_distance <= distance; point++) {
 			current_distance += (line->point[point + 1] - line->point[point]).length();
 		}
-		if (point > 0) point--;
-		TRACE("point = %d  increment = %d\n", point, point - save_point);
+		if (point > 0) point--;  
 		save_point = point;
 		SbVec3f vector = line->point[point + 1] - line->point[point];
 		float rot = atan2(vector[1], vector[0]);
@@ -268,11 +275,11 @@ void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF, 
 		else {
 			rotation = SbRotation(SbVec3f(0, 0, 1), rot - 1.5707);
 		}
-		SbMatrix mat;
+		SbMatrix mat;  // matrix 
 		mat.setTransform(insert_point, rotation, SbVec3f(scale, scale, scale));
 		SoCoordinate3 * insert_coords = new SoCoordinate3;
 		insert_coords->ref();
-		for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {
+		for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {    // fPlacedCoords is a 2-D shape made of line segments
 			SbVec3f transformed_coord;
 			mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
 			insert_coords->point.set1Value(i, transformed_coord);
@@ -316,7 +323,6 @@ void Flattener::intersect_placed_coords_with_line(SoCoordinate3 * insert_coords,
 		SbVec2f  S2[2];  // line segment from line
 		SbVec2f   I0;
 		SbVec2f   I1;
-		//TRACE("count-two = %d\n", count_two);
 		S2[0] = SbVec2f(line->point[i][0], line->point[i][1]);
 		S2[1] = SbVec2f(line->point[i+1][0], line->point[i+1][1]);
 

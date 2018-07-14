@@ -19,6 +19,7 @@ public:
     // input...
     SoSeparator         * fRoot;                    // pointer to the model loft root separator
     SoCoordinate3       * fShapeCoords;
+	SoCoordinate3       * fShape2Coords;            // for morphing
     SoCoordinate3       * fLoftPathCoords;
     SoCoordinate3       * fHScaleCoords;            //
     SoCoordinate3       * fVScaleCoords;            // if fVScaleCoords is NULL we use fHScaleCoords for vertical scale
@@ -28,6 +29,7 @@ public:
     // processed...
     SoCoordinate3       * fLoftScaleCoords;
     SoCoordinate3       * fLoftTwistCoords;
+	float               fCalculatedPathLength;
 
     // output...
     SoCoordinate3       * fLoftCoords;               // we instantiate copies of these to add to model
@@ -66,6 +68,9 @@ public:
                           char * file_extension = NULL);
 
     SoSeparator * extrude_using_multiple_sections(SoCoordinate3 *section_1, SoCoordinate3 * section_2, int num_sides);
+	float		getLengthRatio(int index);  // index is pathCoords vertex
+	void		getShapeCoords(SoMFVec3f & coords, float length_ratio); // returns xsec if only one, or interpolates betwen sec1 and sec2
+	float       getPathLength(void);
 
     void          makeLoftScaleCoords(void);
     void          makeLoftTwistCoords(void);

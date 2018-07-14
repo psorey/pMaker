@@ -570,6 +570,8 @@ void CpMakerView::OnSaveLoft()
 
       SoToVRML2Action tovrml2;
       tovrml2.apply(loftRoot);
+	  treeRoot->ref();
+	  tovrml2.apply(treeRoot);
       SoVRMLGroup *newroot = tovrml2.getVRML2SceneGraph();
       newroot->ref();
       SoOutput out;
@@ -689,8 +691,6 @@ CpMakerView::FindPathToNode(SoGroup* parent, SoNode* node)
     return path;
 }
 //
-
-
 
 SoNode *
 CpMakerView::findChildOfType(SoGroup * parent, SoType typeId)
@@ -1728,7 +1728,7 @@ void CpMakerView::OnTreesTestTree() // menu: TREES/MAKE TREES    make fractal tr
 }
 
 
-void CpMakerView::OnChangeLoftScale()
+void CpMakerView::OnChangeLoftScale()  // something is wrong here...
 {
     float centerline_scale;
     float section_scale;
@@ -1768,11 +1768,11 @@ void CpMakerView::OnChangeLoftScale()
 
     loftRoot->removeAllChildren();
 
-   // if(((vScaleCoords->point[1] - vScaleCoords->point[0]).length() - 1.0) < 0.001) {
-   //     loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, hScaleCoords, this->twistCoords,  1.0, thickness, true));
-   // } else {
-        loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, vScaleCoords,this->twistCoords,  1.0, thickness, true));
-   // }
+ 
+	loftRoot->addChild(fExtruder->extrude_fractal(sectionCoords, scaled_centerline_coords, hScaleCoords, vScaleCoords, this->twistCoords, 1.0, thickness, true));
+
+    //loftRoot->addChild(fExtruder->extrude_fractal(scaled_section_coords, scaled_centerline_coords, hScaleCoords, vScaleCoords,this->twistCoords,  1.0, thickness, true));
+ 
 }
 
 
@@ -1784,6 +1784,7 @@ void CpMakerView::OnFlattenAllLevels()
 
 void CpMakerView::OnLoadMultSections()
 {
+	/*
     SoCoordinate3* section_1_coords = new SoCoordinate3;
     SoCoordinate3* section_2_coords = new SoCoordinate3;
     section_1_coords->ref();
@@ -1821,6 +1822,24 @@ void CpMakerView::OnLoadMultSections()
     section_1_coords->unref();
     section_2_coords->unref();
     delete my_extruder;
+	*/
+
+	SoCoordinate3* section_1_coords = new SoCoordinate3;
+	section_1_coords->ref();
+
+	CString section_1_filename = this->GetFilename(".iv", "*.iv", "Load Section 2 to morph from current section");
+	if (0 == this->ReadCoordinate3(section_1_filename, section_1_coords)) {
+		AfxMessageBox("invalid Inventor file or file not found");
+		section_1_coords->unref();
+		return;
+	}
+	if (fExtruder->fShape2Coords == NULL) {
+		fExtruder->fShape2Coords = new SoCoordinate3;
+		fExtruder->fShape2Coords->ref();
+	}
+	fExtruder->fShape2Coords->point.copyFrom(section_1_coords->point);
+	section_1_coords->unref();
+	this->OnShowDialog();  //fExtruder->extrude();
 }
 
 
@@ -1850,5 +1869,15 @@ void CpMakerView::OnFlatten() //
 
 void CpMakerView::OnFileExtrudealongmultiplelines()
 {
-	// TODO: Add your command handler code here
+	CString filename = GetFilename(".iv", "*.iv", "load a file with multiple Coordinate3 nodes...");
+	if (strcmp(filename, "") == 0) return;
+
+	SoSeparator* tempNode = new SoSeparator;
+	tempNode->ref();
+	SoCoordinate3* inputCoords = new SoCoordinate3;
+	inputCoords->point.deleteValues(0, -1);
+	SoInput myInput;
+	myInput.openFile(filename);
+	tempNode->addChild(SoDB::readAll(&myInput));
+	myInput.closeFile();
 }
