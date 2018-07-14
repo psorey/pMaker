@@ -204,29 +204,16 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
       for (int i = 1; i < numLoftPathCoords -1; i++) {
         currentLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
         SbVec3f sc = interpolateScale(currentLength / totalLength);
-		TRACE("current_length = %f\n", currentLength);
-		//TRACE("sc = %f  \n", currentLength/totalLength);
+
         fLoftScaleCoords->point.set1Value(i, sc);
 	  }
-	  //int cc= 0;
-	 // for(int i=0; i<fHScaleCoords->point.getNum(); i++) {
-	//	SbVec3f loc = fHScaleCoords->point[i];
-	 // }
+
       fLoftScaleCoords->point.set1Value(numLoftPathCoords - 1, 
         SbVec3f(fHScaleCoords->point[num_hscale_coords - 1][1], 
         fVScaleCoords->point[num_vscale_coords - 1][1], 0.0)); 
 		//fHScaleCoords->point[num_hscale_coords - 1][1], 1.0)); 
 	}
-	//test_scales->copyFieldValues(fLoftScaleCoords);
-	//test_scales->ref();
-	//test_x_locations->ref();
-	//SoWriteAction wa;
-    //wa.getOutput()->openFile("scales.iv");
-    //wa.apply(test_scales);
-	//wa.apply(test_x_locations);
-   // wa.getOutput()->closeFile();
-    //test_scales->unref();
-   // test_x_locations->unref();
+
 
     return;
 }
@@ -612,6 +599,7 @@ SbVec3f Extruder::interpolateTwist(float length /* really a ratio of length : fu
 }
 SoSeparator * Extruder::extrude_using_multiple_sections(SoCoordinate3 * section_1, SoCoordinate3 * section_2, int num_sides)
 {
+	// not using this ...
     fLoftCoords->point.deleteValues(0);
     fLoftFaces->coordIndex.deleteValues(0);
     int numShapeVertices = num_sides + 1;
@@ -722,7 +710,7 @@ SbRotation Extruder::getPRY(SbVec3f pt1, SbVec3f pt2)
 
 void Extruder::getShapeCoords(SoMFVec3f & coords, float length_ratio)
 {
-	TRACE("length ratio = %f\n", length_ratio);
+
 
 	if (fShape2Coords == NULL) {
 		coords.copyFrom(fShapeCoords->point);

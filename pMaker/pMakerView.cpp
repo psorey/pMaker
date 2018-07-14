@@ -1833,6 +1833,11 @@ void CpMakerView::OnLoadMultSections()
 		section_1_coords->unref();
 		return;
 	}
+	if (section_1_coords->point.getNum() != this->sectionCoords->point.getNum())
+	{
+		AfxMessageBox("Number of vertices does not match current shape coords");
+		return;
+	}
 	if (fExtruder->fShape2Coords == NULL) {
 		fExtruder->fShape2Coords = new SoCoordinate3;
 		fExtruder->fShape2Coords->ref();
