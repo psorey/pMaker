@@ -170,6 +170,7 @@ protected:
 	afx_msg void OnViewViewmodesViewingmode();
 	afx_msg void OnXSecButton();
 	afx_msg void OnTwistButton();
+	afx_msg void OnRegenButton();
 	afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnAddBackground();
 	afx_msg void OnDeleteBackground();
@@ -205,6 +206,7 @@ protected:
 	afx_msg void OnUseMarkers();
 //	afx_msg void OnOrientToReferenceLine();
 	afx_msg void OnTreesTestTree();
+	
 
 public:
     afx_msg void OnChangeLoftScale();
@@ -216,6 +218,7 @@ public:
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnFileExtrudealongmultiplelines();
+	afx_msg void OnExtrudeMultipleSections();
 };
 
 #ifndef _DEBUG  // debug version in pMakerView.cpp

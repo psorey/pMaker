@@ -204,6 +204,7 @@ BOOL CExaminerDialog::OnInitDialog()
 		root->addChild(textSep);
 	}
 	//////////////
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -261,7 +262,9 @@ CExaminerDialog::viewerCB(void *theView, void *)
 
 void CExaminerDialog::OnClear() 
 {
-	coords->point.deleteValues(2, -1);	
+	coords->point.deleteValues(0, -1);
+	coords->point.set1Value(0, SbVec3f(0, 1, 0));
+	coords->point.set1Value(1, SbVec3f(1, 1, 0));
 	lineManip->setCoordinate3(coords);
 }
 
@@ -374,11 +377,14 @@ void CExaminerDialog::OnSave()
 void CExaminerDialog::OnCheckClosed() 
 {
 	UpdateData(TRUE);
+	
 	int i = coords->point.getNum() - 1;
-	if (TRUE == m_bClosed && coords->point[i] != coords->point[0])
+	/* if (TRUE == m_bClosed && coords->point[i] != coords->point[0])
 		coords->point.set1Value( i + 1, coords->point[0]);
 	else if (FALSE == m_bClosed && coords->point[i] == coords->point[0])
 		coords->point.deleteValues(i, -1);
+		*/
+	coords->point.set1Value(i + 1, coords->point[0]);
 }
 
 void CExaminerDialog::sensorCB(void* data, SoSensor* sensor)

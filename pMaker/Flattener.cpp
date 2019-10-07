@@ -24,8 +24,8 @@
 
 Flattener::Flattener(void) {
 	fPlacedCoords = NULL;
-	SoInput myInput;
-	myInput.openFile("c:\\placed_coords.iv");
+	SoInput myInput;    
+	myInput.openFile("c:\\junk\\placed_coords.iv");  // crashes if not found !!!  maybe open a file dialog to find the one
 	if (!myInput.isValidFile()) {
 		AfxMessageBox("no placed_coords.iv file...");
 		return;
@@ -60,6 +60,7 @@ SbVec3f Flattener::GetVectorPoint(SbVec3f pt, float length, float theta)
 }
 
 
+// flatten_polylines(zigzag_coords, 1, numPathCoords? )
 
 
 ///////// * Using this one  * ///////////
@@ -97,7 +98,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	int indexCount = 0;
 	int index;
 
-	FILE* fp = fopen(m_strAddFile, "w");
+	FILE * fp = fopen(m_strAddFile, "w");
     if(fp == NULL) return;
 	WriteDXF * writeDXF = new WriteDXF(fp); // opens the file and writes the begin section
     writeDXF->WriteBeginDXF();
@@ -140,14 +141,10 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
         writeDXF->WriteZero();
 
 
+		int  fLastCoord = 0;
+		SoMFVec3f  fScallopedLine;  // append output from insert_placed_coords() to fScallopedLine
 
-#define INSERT_COORDS 1
-#define STALK_SPACING 0
-#define SEPAL_SPACING 0
-#define GUIDE_SPACING 0
-#define ROCK_SPACING 1
-#define PETAL_SPACING 0
-
+#define INSERT_COORDS 1  // if TRUE objects are placed along the polylines
 
 		////////////////////////////////////////////////////////////
 		// if an object is being placed on the flattened geometry...
@@ -177,17 +174,80 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 			for (int i = 0; i < line2->point.getNum() - 1; i++) {
 				line2length += (line2->point[i + 1] - line2->point[i]).length();
 			}
-
-			writeDXF->WriteLWPOLYLINE(line1, layer, -1);
-			writeDXF->WriteLWPOLYLINE(line2, layer, -1);
-
 			// define variables and initialize with default value
-			float begin_spacing = 1.95; // the starting distance between placed objects
-			float end_spacing = 1.3;
-			float begin_scale = 1;
-			float end_scale = .30;
-			float current_distance = 0.0;   // 
+		
+			double begin_spacing; // the starting distance between placed objects
+			double end_spacing = 0.0;
+			double begin_scale = 0.0;
+			double end_scale = 0.0;
+			double current_distance = 0.0;   // 
 			// place the first at distance 0
+			double overall_scale = 1.0;
+
+
+#define PADDLE_SPACING 0
+#define NEW_PADDLE_SPACING 1
+#define PROW_SPACING 0
+#define PROW_SPACING_FINAL 0
+
+#define CHRISTIE_SPACING 0
+#define STALK_SPACING 0
+#define SEPAL_SPACING 0
+#define GUIDE_SPACING 0
+#define ROCK_SPACING 0
+#define PETAL_SPACING 0
+
+
+			if (PROW_SPACING) {
+				overall_scale = 4;
+				end_spacing = 21.9; // the starting distance between placed objects
+				begin_spacing = 3.8;
+				end_scale = 8.6;
+				begin_scale = 1.80;   
+			}
+
+			if (PROW_SPACING_FINAL) {
+				overall_scale = 4;
+				end_spacing = 15.9; // the starting distance between placed objects
+				begin_spacing = 4.2;
+				end_scale = 5.6;
+				begin_scale = 1.60;
+			}
+/*
+			if (PROW_SPACING_TEST) {
+				overall_scale = 4;
+				end_spacing = 21.9; // the starting distance between placed objects
+				begin_spacing = 4.2;
+				end_scale = 8.6;
+				begin_scale = 1.60;
+			}
+*/
+
+			if (NEW_PADDLE_SPACING) {
+				overall_scale = 3;
+				begin_spacing = 1.1 * overall_scale; // the starting distance between placed objects
+				end_spacing = 1.1 * overall_scale;
+				begin_scale = 1.2;
+				end_scale = 1.2;
+			}
+
+			if (PADDLE_SPACING) {
+				overall_scale = 2;
+				begin_spacing = 1.1 * overall_scale; // the starting distance between placed objects
+				end_spacing = 1.1 * overall_scale;
+				begin_scale = .8;
+				end_scale = .8;
+			}
+
+
+			if (CHRISTIE_SPACING) {
+				overall_scale = 4;
+				begin_spacing = 1 * overall_scale; // the starting distance between placed objects
+				end_spacing = 1 * overall_scale;
+				begin_scale = 1;
+				end_scale = 1;
+			}
+
 
 			if (STALK_SPACING) {
 				begin_spacing = 1.95; // the starting distance between placed objects
@@ -195,6 +255,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 				begin_scale = 1.5;
 				end_scale = .50;
 			}
+
 			if (SEPAL_SPACING) {
 				begin_spacing = 0.8; // the starting distance between placed objects
 				end_spacing = 0.6;
@@ -225,13 +286,14 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 
 			SbMatrix mat;
 			float distance = 0.0;
-			insertPlacedCoords(layer, 0, writeDXF, line1, line1length, begin_spacing, end_spacing, begin_scale, end_scale);
-			insertPlacedCoords(layer, 1, writeDXF, line2, line2length, begin_spacing, end_spacing, begin_scale, end_scale);
+
+			insertPlacedCoords(layer, 0, writeDXF, line1, line2, line1length, begin_spacing, end_spacing, begin_scale, end_scale);
+			insertPlacedCoords(layer, 1, writeDXF, line2, line1, line2length, begin_spacing, end_spacing, begin_scale, end_scale);
 
 			line1->unref();
 			line2->unref();
 		}
-	}
+	}  // side
 	////////////////////////////////////////////////////////////////////////////////
     writeDXF->WriteDXFEndsec();
     writeDXF->WriteEndDXF();
@@ -240,30 +302,61 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	flatCoords->unref();
 }	
 
-SbVec3f last_point = SbVec3f(0, 0, 0);
-int save_point = 0;
 
 
-void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF,    // 'fPlacedCoords' is a 2-D shape (the scallop), a series of line segments
-	                               SoCoordinate3 *line, float linelength,          // 'line' is a 2-D line which is the (left or right) outline of a flattened side
-	                               float begin_spacing, float end_spacing,         // 'spacing' is how far apart the placed coords are inserted onto 'line'
-	                               float begin_scale, float end_scale)             // 'scale' is the scale of the placed coords 
+
+int Flattener::get_point_at_length(const SoMFVec3f line, float length) {
+	float distance = 0.0;
+	int i;
+	for (i = 0; i < line.getNum() && distance < length; i++) {
+			distance += (line[i + 1] - line[i]).length();
+	}
+	return i;
+}
+
+
+void Flattener::insertPlacedCoords(     // called once per leg of the shape, to flip the insertion to the other side of the line
+	char *			layer, 
+	int				side, 
+	WriteDXF *		writeDXF,			// 'fPlacedCoords' is a 2-D shape (the scallop), a series of line segments
+    SoCoordinate3 * line,
+	SoCoordinate3 * opposite_line,
+	float			linelength,         // 'line' is a 2-D line which is the (left or right) outline of a flattened side
+	float			begin_spacing, 
+	float			end_spacing,        // 'spacing' is how far apart the placed coords are inserted onto 'line'
+	float			begin_scale, 
+	float			end_scale)          // 'scale' is the scale of the placed coords 
 {
+
+	SoMFVec3f		last_bit_plus_trimmed_insert;
+	SoMFVec3f       accumulated_segments;
+	//SoMFVec3f       connecting_coords; // coords copied from line that connect to a) beginning of line, or b) coords added to the last placed_coords
+	
+	int last_point_num = 0;
+	int new_last_point_num = 0;
+	SbVec3f new_last_insert_point = SbVec3f(0,0,0);  // value changed in function intersect...
+	SbVec3f last_insert_point = SbVec3f(0, 0, 0);
+
+	//SbVec3f last_point;
+
+	// measure the line
 	float distance = 0.0;
 	float current_distance = 0.0;
+
+	// move along the line points
 	while (distance < linelength) {              // 
-		float ratio = distance / linelength;     
+		float ratio = distance / linelength;
 		float scale = begin_scale - ((begin_scale - end_scale) * ratio);
 		float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
 
 		current_distance = 0.0;
-		// increment along points defining 'line'l
+		// increment along points defining 'line'
 		int point = 0;
 		for (point = 0; current_distance <= distance; point++) {
 			current_distance += (line->point[point + 1] - line->point[point]).length();
 		}
-		if (point > 0) point--;  
-		save_point = point;
+		if (point > 0) point--;
+	//	save_point = point;  // point = the last point BEFORE the insertion point of the placed_coords (not the trimmed line)
 		SbVec3f vector = line->point[point + 1] - line->point[point];
 		float rot = atan2(vector[1], vector[0]);
 		// find 'insertion' point, rotation and scale
@@ -274,55 +367,188 @@ void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF, 
 		}
 		else {
 			rotation = SbRotation(SbVec3f(0, 0, 1), rot - 1.5707);
+			// also need to flip order of vertices .. see below
 		}
 		SbMatrix mat;  // matrix 
 		mat.setTransform(insert_point, rotation, SbVec3f(scale, scale, scale));
+		
+		// generate placed(insert)_coords that are placed, scaled and rotated
+		// 
 		SoCoordinate3 * insert_coords = new SoCoordinate3;
 		insert_coords->ref();
-		for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {    // fPlacedCoords is a 2-D shape made of line segments
+		for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {    // fPlacedCoords is a 2-D shape made of line segments, currently at c:\\junk
 			SbVec3f transformed_coord;
 			mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
 			insert_coords->point.set1Value(i, transformed_coord);
+			//TRACE("new_insert_coords  %d\n", i);
 		}
-		intersect_placed_coords_with_line(insert_coords, line);  // modifies insert_coords (trims to line)
-		SoCoordinate3 * new_coords = new SoCoordinate3;
-		new_coords->ref();
-		new_coords->point.setValue(last_point);
-		if (side == 0) {
-			for (int i = 0; i < insert_coords->point.getNum(); i++) {
-				new_coords->point.set1Value(i + 1, insert_coords->point[i]);
+		if(side != 0) {   // reverse order}
+		    SoMFVec3f copy; /// = insert_coords->point.copy
+		    copy.copyFrom(insert_coords->point);
+		    int num = insert_coords->point.getNum();
+			for (int i = 0; i < num; i++) {
+				insert_coords->point.set1Value(num -1 - i, copy[i]);
 			}
-			last_point = new_coords->point[new_coords->point.getNum() - 1];
-		} else {
-			int count = 1;
-			for(int i = insert_coords->point.getNum() - 1; i >= 0; i--) {
-				new_coords->point.set1Value(count++, insert_coords->point[i]);
-			}
-			last_point = new_coords->point[new_coords->point.getNum() - 1];
-			//last_point = new_coords->point[1];
 		}
-		writeDXF->WriteLWPOLYLINE(new_coords, layer, -1);
-		new_coords->unref();
-		insert_coords->unref();
+
+		// modify to return the list of points from the input point (last point?) # to the point number after the intersection
+		// place the actual coords over the actual line and get intersection points
+		// int coord_before_intersection;
+		// int coord_after_intersection;    SbVec3f last_insert_point, SbVec3f & new_last_insert_point,
+		if (distance > 0.00001) {      // don't do the first insert
+			TRACE("distance = %f\n", distance);
+			intersect_placed_coords_with_line(last_bit_plus_trimmed_insert, last_insert_point, new_last_insert_point, last_point_num, new_last_point_num, insert_coords, line);
+			
+			last_point_num = new_last_point_num;
+			last_insert_point = new_last_insert_point;
+
+			TRACE("last_point_num = %d\n", last_point_num);
+			int num_exist_pts = accumulated_segments.getNum();
+			int num_pts_to_add = last_bit_plus_trimmed_insert.getNum();
+
+			for (int i = 0; i < num_pts_to_add; i++) {
+				TRACE("last_bit_plus_trimmed_insert  =  %f\t\t%f\n", last_bit_plus_trimmed_insert[i][0], last_bit_plus_trimmed_insert[i][1]);
+			}
+
+			// save the new points to the end of the array
+			for (int i = 0; i < num_pts_to_add; i++) {
+				accumulated_segments.set1Value(i + num_exist_pts, last_bit_plus_trimmed_insert[i]);
+			}
+			insert_coords->unref();
+		}
 		distance += spacing;
 	}
+	SoCoordinate3 * scalloped_side = new SoCoordinate3;
+	scalloped_side->ref();
+	scalloped_side->point.copyFrom(accumulated_segments);
+
+	writeDXF->WriteLWPOLYLINE(scalloped_side, layer, -1);
+	/*
+	// for testing...
+	SoWriteAction wa;
+	wa.getOutput()->openFile("scallop_test.iv");
+	wa.apply(scalloped_side);
+	wa.getOutput()->closeFile();
+	*/
+	scalloped_side->unref();
 }
+
 
 // find points where insert_coords lines intersect with the flatten line
 // trim insert_coords to line trim_to_line(SoCoordinate3 * line, SoCoordinate3 * placed_coords)
 // create line from last insert_coords trimmed last-point to current insert_coords trimmed first-point
+// void Flattener::intersect_placed_coords_with_line(
+//                                SbVec3f &coords_to_append,
+//                                int &coord_before, 
+//                                it  &coord_after, 
+//                                SoCoordinate3 * insert_coords, 
+//                                SoCoordinate3 * line)
+// {
 
-void Flattener::intersect_placed_coords_with_line(SoCoordinate3 * insert_coords, SoCoordinate3 * line) {
-    // test each segment of line with each segment of insert_coords? or assume 1st and last segment of insert_coords only...
-    // return trimmed first, middle coords, trimmed last
+void Flattener::intersect_placed_coords_with_line(  
+	                                        SoMFVec3f & last_bits_plus_trimmed_insert, 
+							                SbVec3f last_insert_point,    // last vertex of last inserted item,
+	                                        SbVec3f & new_last_insert_point, 
+	                                        int last_point_num,          // line->point[last_point_num]
+	                                        int &new_last_point_num, 
+	                                        SoCoordinate3 * insert_coords, // these are trimmed at line
+	                                        SoCoordinate3 * line )
+{
+
+	// test each segment of line with each segment of insert_coords? or assume 1st and last segment of insert_coords only...
+	// return trimmed first, middle coords, trimmed last
+	//SoMFVec3f return_coords;  // line[last_point_num], // then add points from line until an intersection found --
 	int num_line_coords = line->point.getNum();
-
 	int count_two = 0;
+	int save_pts[2];
+	int first_pt_num = 0;
+	last_bits_plus_trimmed_insert.deleteValues(0);
+
+	// steps through the line until an intersection is found
 	for (int i = 0; i < num_line_coords - 1; i++) {
 		SbVec2f  S1[2];  // first line segment from insert_coords
 		SbVec2f  S2[2];  // line segment from line
-		SbVec2f   I0;
-		SbVec2f   I1;
+		SbVec2f  I0;
+		SbVec2f  I1;
+
+		// segment of line we are testing
+		S2[0] = SbVec2f(line->point[i][0], line->point[i][1]);
+		S2[1] = SbVec2f(line->point[i + 1][0], line->point[i + 1][1]);
+
+		// better to not care if first or second hit is the first or last -- 
+		// test first segment of insert...................................
+		S1[0] = SbVec2f(insert_coords->point[0][0], insert_coords->point[0][1]);
+		S1[1] = SbVec2f(insert_coords->point[1][0], insert_coords->point[1][1]);
+		int test = Intersection::intersect2D_2Segments(S1, S2, I0, I1);
+		if (test == 1) {
+			insert_coords->point.set1Value(0, SbVec3f(I0[0], I0[1], 0.0));  // replace the first point (assumes only the first segment crosses the line
+			save_pts[0] = i; // saves the point_num on line before splice count = 0
+			first_pt_num = i;
+			TRACE("last_point_num =  %d     first_pt_num = %d\n", last_point_num, first_pt_num);
+			count_two++;
+		}
+
+
+		// test last segment of insert.....................................
+		int num = insert_coords->point.getNum();
+		S1[0] = SbVec2f(insert_coords->point[num - 2][0], insert_coords->point[num - 2][1]);
+		S1[1] = SbVec2f(insert_coords->point[num - 1][0], insert_coords->point[num - 1][1]);
+		test = Intersection::intersect2D_2Segments(S1, S2, I0, I1);
+		if (test == 1) {
+			insert_coords->point.set1Value(num - 1, SbVec3f(I0[0], I0[1], 0.0));  // replace the last point (assumes only the last segment crosses the line
+			save_pts[1] = i;  // saves the point_num on line after splice
+			new_last_insert_point = SbVec3f(I0[0], I0[1], 0.0);
+			TRACE("new_last_insert_point =  %f\t\t%f\n", I0[0], I0[1]);
+			new_last_point_num = i +1;
+			count_two++;
+		}
+
+		if (count_two >= 2) {
+			TRACE("found two\n");
+			i = num_line_coords; // end loop
+		}
+	}
+	// we've trimmed the insert_coords, now insert [last_point from previous insertion, line[saved_pts[1]] from last time, through line[saved_pts[0]] this time, 
+	int num_insert_coords = insert_coords->point.getNum();
+	int num_line_coords_before_splice = first_pt_num - last_point_num + 1;  // maybe should be counting from line->point[0]?
+	int num_to_insert = 2 + (first_pt_num -last_point_num);   // == point #
+	TRACE("num before splice = %d\n", num_line_coords_before_splice);
+	int i;
+	last_bits_plus_trimmed_insert.set1Value(0, last_insert_point);
+
+	for(i = 1; i <= num_line_coords_before_splice; i++) {  //// !!!!!!!!
+		//// 
+	    last_bits_plus_trimmed_insert.set1Value(i, line->point[i - 1 + last_point_num]); //  the final fix that made it work
+		// TRACE("added a point!     %f      %f\n", line->point[i + last_point_num][0], line->point[i + last_point_num][1]);
+	}
+	 // now add the trimmed insert_coords
+	for(int j = 0; j < num_insert_coords; j++) {
+		last_bits_plus_trimmed_insert.set1Value(i, insert_coords->point[j]);
+		i++;
+	}
+}
+
+
+void Flattener::intersect_placed_coords_with_line(
+								SoCoordinate3 * insert_coords, 
+								SoCoordinate3 * line)
+{
+    // test each segment of line with each segment of insert_coords? or assume 1st and last segment of insert_coords only...
+    // return trimmed first, middle coords, trimmed last
+	
+	int num_line_coords = line->point.getNum();
+
+	int count_two = 0;
+
+	// coords_to_append
+	// coord_before = 0;
+	// coord_after = 0;
+
+	for (int i = 0; i < num_line_coords - 1; i++) {
+		SbVec2f  S1[2];  // first line segment from insert_csoords
+		SbVec2f  S2[2];  // line segment from line
+		SbVec2f  I0;
+		SbVec2f  I1;
 		S2[0] = SbVec2f(line->point[i][0], line->point[i][1]);
 		S2[1] = SbVec2f(line->point[i+1][0], line->point[i+1][1]);
 
@@ -331,7 +557,7 @@ void Flattener::intersect_placed_coords_with_line(SoCoordinate3 * insert_coords,
 		S1[1] = SbVec2f(insert_coords->point[1][0], insert_coords->point[1][1]);
 		int test = Intersection::intersect2D_2Segments(S1, S2, I0, I1);
 		if (test == 1) {
-			insert_coords->point.set1Value(0, SbVec3f(I0[0], I0[1], 0.0));
+			insert_coords->point.set1Value(0, SbVec3f(I0[0], I0[1], 0.0));  // replaces old value with new intersection point
 			count_two++;
 		}
 		int num = insert_coords->point.getNum();
@@ -427,6 +653,84 @@ SbVec3f Flattener::findPointOnLine(SoCoordinate3 * line, float desired_distance)
 */
 
 
+// this one derives the current scale from current distance between the same point on line 1 and 2
+/* not working yet
+void Flattener::insertPlacedCoords(char * layer, int side, WriteDXF * writeDXF,    // 'fPlacedCoords' is a 2-D shape (the scallop), a series of line segments
+SoCoordinate3 * line,
+SoCoordinate3 * opposite_line,
+float linelength,                               // 'line' is a 2-D line which is the (left or right) outline of a flattened side
+float begin_spacing, float end_spacing,         // 'spacing' is how far apart the placed coords are inserted onto 'line'
+float begin_scale, float end_scale)             // 'scale' is the scale of the placed coords
+{
+float distance = 0.0;
+float current_distance = 0.0;
+float ratio;
+float scale;
+float spacing;
+
+while (distance < linelength) {              //
+
+// find the point # closest to the current distance:
+int current_point = get_point_at_length(line->point, distance);
+SbVec3f line_point = line->point[current_point];
+SbVec3f opposite_line_point = opposite_line->point[current_point];
+
+//float ratio = distance / linelength;
+float scale = begin_scale - ((begin_scale - end_scale) * ratio);
+float spacing = begin_spacing - ((begin_spacing - end_spacing) * ratio);
+
+current_distance = 0.0;
+// increment along points defining 'line'l
+int point = 0;
+for (point = 0; current_distance <= distance; point++) {
+current_distance += (line->point[point + 1] - line->point[point]).length();
+}
+if (point > 0) point--;
+save_point = point;
+SbVec3f vector = line->point[point + 1] - line->point[point];
+float rot = atan2(vector[1], vector[0]);
+// find 'insertion' point, rotation and scale
+SbVec3f insert_point = findPointOnLine(line, distance);
+SbRotation rotation;
+if (side == 0) {
+rotation = SbRotation(SbVec3f(0, 0, 1), rot + 1.5707);
+}
+else {
+rotation = SbRotation(SbVec3f(0, 0, 1), rot - 1.5707);
+}
+SbMatrix mat;  // matrix
+mat.setTransform(insert_point, rotation, SbVec3f(scale, scale, scale));
+SoCoordinate3 * insert_coords = new SoCoordinate3;
+insert_coords->ref();
+for (int i = 0; i < fPlacedCoords->point.getNum(); i++) {    // fPlacedCoords is a 2-D shape made of line segments
+SbVec3f transformed_coord;
+mat.multVecMatrix(fPlacedCoords->point[i], transformed_coord);
+insert_coords->point.set1Value(i, transformed_coord);
+}
+intersect_placed_coords_with_line(insert_coords, line);  // modifies insert_coords (trims to line)
+SoCoordinate3 * new_coords = new SoCoordinate3;
+new_coords->ref();
+new_coords->point.setValue(last_point);
+if (side == 0) {
+for (int i = 0; i < insert_coords->point.getNum(); i++) {
+new_coords->point.set1Value(i + 1, insert_coords->point[i]);
+}
+last_point = new_coords->point[new_coords->point.getNum() - 1];
+} else {
+int count = 1;
+for(int i = insert_coords->point.getNum() - 1; i >= 0; i--) {
+new_coords->point.set1Value(count++, insert_coords->point[i]);
+}
+last_point = new_coords->point[new_coords->point.getNum() - 1];
+//last_point = new_coords->point[1];
+}
+writeDXF->WriteLWPOLYLINE(new_coords, layer, -1);
+new_coords->unref();
+insert_coords->unref();
+distance += spacing;
+}
+}
+*/
 
 void Flattener::flatten_quadrilaterals(SoCoordinate3 * loftCoords, int numSides, int numPathCoords)  // quadrilaterals
 {

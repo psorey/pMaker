@@ -85,8 +85,77 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     this->makeLoftTwistCoords();        //
     this->makeLoftObject();             //
 
-	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
-	//Inspect::Coordinate3("fVScaleCoords", fVScaleCoords);
+	//write a file containing lines of extrusion...
+	SoWriteAction wa;
+	wa.getOutput()->openFile("extruded_lines.iv");
+	int numPathCoords = fLoftPathCoords->point.getNum();
+	int numShapeCoords = fShapeCoords->point.getNum();
+	
+	SoCoordinate3 * coords = new  SoCoordinate3;
+	coords->ref();
+	SoLineSet * lines = new SoLineSet;
+	lines->ref();
+	// int coord_to_save = 6;
+	// int coords_count = 0;
+	for (int k = 0; k < numShapeCoords; k++) {
+		coords->point.deleteValues(0, -1);
+		for (int i = 0; i < numPathCoords; i++) {
+			coords->point.set1Value(i, fLoftCoords->point[i * numShapeCoords + k]);
+		}
+		char numberst[50];
+		sprintf(numberst, "coord_%d", k);
+		coords->setName(numberst);
+		wa.apply(coords);
+		wa.apply(lines);
+	}
+	wa.getOutput()->closeFile();
+
+	wa.getOutput()->openFile("extruded_sections.iv");
+	for (int k = 0; k < numPathCoords; k++) {
+		coords->point.deleteValues(0, -1);
+		int j = k * numShapeCoords;
+		for (int i = 0; i < numShapeCoords; i++) {
+			coords->point.set1Value(i, fLoftCoords->point[j + i]);
+		}
+		char numberst[50];
+		sprintf(numberst, "section_%d", k);
+		coords->setName(numberst);
+		wa.apply(coords);
+		wa.apply(lines);
+	}
+	wa.getOutput()->closeFile();
+
+	wa.getOutput()->openFile("first_extruded_line.iv");
+	coords->point.deleteValues(0, -1);
+
+	int k = 0;
+	for (int i = 0; i < numPathCoords; i++) {
+		coords->point.set1Value(i, fLoftCoords->point[i * numShapeCoords + k]);
+	}
+
+	char numberst[50];
+	sprintf(numberst, "coord_%d", k);
+	coords->setName(numberst);
+	wa.apply(coords);
+	wa.apply(lines);
+	wa.getOutput()->closeFile();
+
+	wa.getOutput()->openFile("last_extruded_line.iv");
+	coords->point.deleteValues(0,-1);
+	k = numShapeCoords -1;
+	for (int i = 0; i < numPathCoords; i++) {
+		coords->point.set1Value(i, fLoftCoords->point[i * numShapeCoords + k]);
+	}
+
+	// char numberst[50];
+	sprintf(numberst, "coord_%d", k);
+	coords->setName(numberst);
+	wa.apply(coords);
+	wa.apply(lines);
+	wa.getOutput()->closeFile();
+
+	coords->unref();
+	lines->unref();
 
     if(TRUE == flatten) 
          fFlattener->flatten_polylines(this->fLoftCoords, this->fShapeCoords->point.getNum()-1, this->fLoftPathCoords->point.getNum());     
@@ -100,19 +169,26 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
     returnNode->addChild(hints);
     returnNode->addChild(this->createExtrusionNode()); // copy internal extrusion data create new scene subtree. 
 
+	// save last extrusion
+	wa.getOutput()->openFile("last_extruded_SHAPE.iv");
+
+	returnNode->ref();
+	wa.apply(returnNode);
+
+	wa.getOutput()->closeFile();
     return returnNode;
 }
 
 
-SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords, 
-                                SoCoordinate3 *loftPathCoords, 
+SoSeparator * Extruder::extrude_fractal(SoCoordinate3 * shapeCoords, 
+                                SoCoordinate3 * loftPathCoords, 
                                 SoCoordinate3 * hScaleCoords, 
                                 SoCoordinate3 * vScaleCoords,
                                 SoCoordinate3 * twistCoords,
                                 float fractal_scale, 
                                 float thickness,
                                 bool flatten,
-                                char *file_extension ) 
+                                char * file_extension ) 
 {
     fShapeCoords     = shapeCoords;     //
     fLoftPathCoords  = loftPathCoords;  //
@@ -122,10 +198,10 @@ SoSeparator * Extruder::extrude_fractal(SoCoordinate3 *shapeCoords,
     fFractalScale    = fractal_scale;   //
     fThickness       = thickness;       //
 
-    //TRACE("Extrude::extrude_fractal\n");
-	//TRACE("fFractal_scale = %f\n", fFractalScale);
-	//Inspect::Coordinate3("fShapeCoords", fShapeCoords);
-	//Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
+    // TRACE("Extrude::extrude_fractal\n");
+	// TRACE("fFractal_scale = %f\n", fFractalScale);
+	// Inspect::Coordinate3("fShapeCoords", fShapeCoords);
+	// Inspect::Coordinate3("fHScaleCoords", fHScaleCoords);
 
     this->makeLoftScaleCoords();        //
     this->makeLoftTwistCoords();        //
@@ -272,7 +348,7 @@ void Extruder::makeLoftObject()
 		scaledCoords.deleteValues(0, -1);
 		int scaledCoordsCount = 0;
 		SoMFVec3f interpolatedShapeCoords;
-		getShapeCoords(interpolatedShapeCoords, currentLength / fCalculatedPathLength); // test with this!!!!
+		getShapeCoords(interpolatedShapeCoords, currentLength / fCalculatedPathLength); 
 		// shapeCoords -- calculate if more than one cross-section -- based on % distance along path
 		// and store in scaledCoords
 		for (int j = 0; j < numShapeVertices; j++) {
@@ -710,12 +786,9 @@ SbRotation Extruder::getPRY(SbVec3f pt1, SbVec3f pt2)
 
 void Extruder::getShapeCoords(SoMFVec3f & coords, float length_ratio)
 {
-
-
 	if (fShape2Coords == NULL) {
 		coords.copyFrom(fShapeCoords->point);
-	}
-	else {
+	} else {
 		for (int i = 0; i < fShapeCoords->point.getNum(); i++) {
 			SbVec3f vec = fShape2Coords->point[i] - fShapeCoords->point[i];
 			vec *= length_ratio;

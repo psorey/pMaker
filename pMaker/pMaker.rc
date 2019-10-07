@@ -64,7 +64,9 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\pMaker.ico"
+
 IDR_pMakerTYPE          ICON                    "res\\pMakerDoc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -185,7 +187,7 @@ BEGIN
     CONTROL         "",IDC_VIEWER,"Static",SS_LEFTNOWORDWRAP | SS_NOTIFY | WS_GROUP,7,55,397,241
     PUSHBUTTON      "   Load IV",IDC_LOAD,5,1,39,11
     PUSHBUTTON      "Save...",IDC_SAVE,105,1,32,11
-    PUSHBUTTON      "Clear",IDC_CLEAR,139,1,33,11
+    PUSHBUTTON      "RESET",IDC_CLEAR,139,1,33,11
     CONTROL         "Closed",IDC_CHECK_CLOSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,217,1,37,10
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,257,0,11,13
     EDITTEXT        IDC_VERT_EXAG,269,0,24,12,ES_AUTOHSCROLL
@@ -375,7 +377,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "CompanyName", "Paul Sorey Artworks"
             VALUE "FileDescription", "TODO: <File description>"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "pMaker.exe"
@@ -525,6 +527,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "extrude between 2 shapes",    ID_FILE_LOADMULTIPLECROSS
         MENUITEM "Extrude along multiple lines", ID_FILE_EXTRUDEALONGMULTIPLELINES
+        MENUITEM "extrude multiple XSECTIONS",  ID_FILE_EXTRUDEMULTIPLESECTIONS
     END
     POPUP "&Edit"
     BEGIN
@@ -582,7 +585,7 @@ END
 // Toolbar
 //
 
-IDR_MAINFRAME TOOLBAR 16, 15
+IDR_MAINFRAME TOOLBAR 16, 16
 BEGIN
     BUTTON      ID_FILE_NEW
     BUTTON      ID_FILE_OPEN
@@ -596,6 +599,8 @@ BEGIN
     BUTTON      ID_HSCALE_BUTTON
     SEPARATOR
     BUTTON      ID_TWIST_BUTTON
+    SEPARATOR
+    BUTTON      ID_BUTTON_REGEN
 END
 
 
@@ -605,6 +610,18 @@ END
 //
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_IVDIALOG_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -738,6 +755,11 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_LOADMULTIPLECROSS "load two different x-sections"
+END
+
+STRINGTABLE
+BEGIN
+    ID_BUTTON_REGEN         "regen"
 END
 
 #endif    // English (United States) resources

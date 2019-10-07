@@ -6,7 +6,7 @@
 #include "pMakerDoc.h"
 #include "pMakerView.h"
 #include "Extruder.h"
-//#include "Flattener.h"
+#include "Flattener.h"
 #include "FractalTreeDialog.h"
 #include "FractalTreeMaker.h"
 #include "FractalTreeSpec.h"
@@ -80,6 +80,7 @@ BEGIN_MESSAGE_MAP(CpMakerView, CView)
     ON_COMMAND(ID_VIEW_VIEWINGMODE, OnViewViewmodesViewingmode)
     ON_COMMAND(ID_X_SEC_BUTTON, OnXSecButton)
     ON_COMMAND(ID_TWIST_BUTTON, OnTwistButton)
+	//ON_COMMAND(ID_REGEN_BUTTON, OnRegenButton)
     ON_WM_RBUTTONDBLCLK()
     ON_COMMAND(ID_ADD_BACKGROUND, OnAddBackground)
     ON_COMMAND(ID_DELETE_BACKGROUND, OnDeleteBackground)
@@ -126,6 +127,8 @@ BEGIN_MESSAGE_MAP(CpMakerView, CView)
     ON_COMMAND(ID_FILE_LOADMULTIPLECROSS, &CpMakerView::OnLoadMultSections)
     ON_COMMAND(ID_FILE_SAVE_AS, &CpMakerView::OnFileSaveAs)
 	ON_COMMAND(ID_FILE_EXTRUDEALONGMULTIPLELINES, &CpMakerView::OnFileExtrudealongmultiplelines)
+	ON_COMMAND(ID_FILE_EXTRUDEMULTIPLESECTIONS, &CpMakerView::OnExtrudeMultipleSections)
+	ON_COMMAND(ID_BUTTON_REGEN, &CpMakerView::OnRegenButton)
 END_MESSAGE_MAP()
 
 
@@ -335,7 +338,7 @@ void CpMakerView::OnInitialUpdate()
     viewer->setSceneGraph(root);
 
     fUpperLowerDialog = NULL;
-    fIsEqualScale = TRUE;
+    fIsEqualScale = FALSE;
 
    SoEventCallback *myEventCallback = new SoEventCallback;
    root->addChild(myEventCallback);
@@ -363,6 +366,7 @@ void CpMakerView::OnInitialUpdate()
     fSearchBackground = FALSE;
     fSegmentDlg = NULL;
     CView::OnInitialUpdate();
+	PostMessage(WM_RBUTTONDBLCLK, 0, 0); // !!!
 }
 
 void CpMakerView::OnDestroy()
@@ -427,16 +431,21 @@ void CpMakerView::OnTwistButton()
     twistDlg->Create();
 }
 
+void CpMakerView::OnRegenButton()
+{
+	TRACE("regen!!!\n\n");
+	this->OnShowDialog();
+}
+
 void CpMakerView::OnHscaleButton() 
 {
-    //  hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, this, FALSE);
+    // hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, this, FALSE);
     hScaleDlg = new CExaminerDialog(CString("Horizontal Scale Profile"), hScaleCoords, hScaleSplineCoords, this);
     hScaleDlg->Create();
 }
 
 void CpMakerView::OnVscaleButton() 
 {
-    //  vScaleDlg = new CExaminerDialog(CString("Vertical Scale Profile"), vScaleCoords, this, FALSE);
     vScaleDlg = new CExaminerDialog(CString("Vertical Scale Profile"), vScaleCoords, vScaleSplineCoords, this);
     vScaleDlg->Create();
 }
@@ -529,9 +538,7 @@ void CpMakerView::OnShowDialog() // call this to regenerate the extrusion
 	branch_sep = fExtruder->extrude(this->sectionCoords,this->threeDCoords, this->hScaleCoords, this->vScaleCoords, this->twistCoords, thickness, false );
     //}
     loftRoot->addChild(branch_sep);
-  
 }
-
 
 void CpMakerView::OnSaveLoft() 
 {
@@ -541,15 +548,12 @@ void CpMakerView::OnSaveLoft()
   LPCTSTR lpszFileName = "*_e.iv";
   DWORD   dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
   CWnd    *pParentWnd = NULL;
-    
   CFileDialog addFileDialog(bAddFileDialog,
       lpszDefExt, lpszFileName, dwFlags,
       lpszFilter, pParentWnd);
-
   addFileDialog.m_ofn.lpstrTitle = LPCTSTR("Save the Loft Object...");
   int nModal = addFileDialog.DoModal();
   CString m_strAddFile;
-
     if (nModal == IDOK) {
         m_strAddFile = addFileDialog.GetFileName();
         SetCurrentDirectory(addFileDialog.GetFolderPath());
@@ -568,19 +572,21 @@ void CpMakerView::OnSaveLoft()
         wa.apply(treeRoot);
         wa.getOutput()->closeFile();	
 
-      SoToVRML2Action tovrml2;
-      tovrml2.apply(loftRoot);
-	  treeRoot->ref();
-	  tovrml2.apply(treeRoot);
-      SoVRMLGroup *newroot = tovrml2.getVRML2SceneGraph();
-      newroot->ref();
-      SoOutput out;
-      out.openFile("out.wrl");
-      out.setHeaderString("#VRML V2.0 utf8");
-      SoWriteAction wra(&out);
-      wra.apply(newroot);
-      out.closeFile();
-      newroot->unref();
+		/*
+		SoToVRML2Action tovrml2;
+		tovrml2.apply(loftRoot);
+		SoVRMLGroup *newroot = tovrml2.getVRML2SceneGraph();
+		newroot->ref();
+		SoOutput out;
+		CString filename = GetFilename("wrl", "*.wrl", "Export a vrml file");
+		out.openFile(filename);
+		out.setHeaderString("#VRML V2.0 utf8");
+		SoWriteAction wra(&out);
+		wra.apply(newroot);
+		out.closeFile();
+		newroot->unref();
+		*/
+
     }	
 }
 
@@ -598,34 +604,38 @@ void CpMakerView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
-void CpMakerView::OnSaveConstructionData() 
+void CpMakerView::OnSaveConstructionData()
 {
-    BOOL    bAddFileDialog = FALSE;
-    LPCTSTR lpszFilter = NULL;
-    LPCTSTR lpszDefExt = "ldf";
-    LPCTSTR lpszFileName = "*.ldf";
-    DWORD   dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-    CWnd    *pParentWnd = NULL;
- 
-    CFileDialog addFileDialog(bAddFileDialog,
-        lpszDefExt, lpszFileName, dwFlags,
-        lpszFilter, pParentWnd);
+	BOOL    bAddFileDialog = FALSE;
+	LPCTSTR lpszFilter = NULL;
+	LPCTSTR lpszDefExt = "ldf";
+	LPCTSTR lpszFileName = "*.ldf";
+	DWORD   dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+	CWnd    *pParentWnd = NULL;
 
-    addFileDialog.m_ofn.lpstrTitle = LPCTSTR("Save the Loft Construction Data...");
-    int nModal = addFileDialog.DoModal();
-    CString m_strAddFile;
+	CFileDialog addFileDialog(bAddFileDialog,
+		lpszDefExt, lpszFileName, dwFlags,
+		lpszFilter, pParentWnd);
 
-    if (nModal != IDOK) return;
-        
-    m_strAddFile = addFileDialog.GetFileName();
-    SetCurrentDirectory(addFileDialog.GetFolderPath());
-    SoWriteAction wa;
-    wa.getOutput()->openFile(m_strAddFile);
-    wa.apply(sectionCoords);
-    wa.apply(hScaleCoords);
-    wa.apply(vScaleCoords);
-    wa.apply(twistCoords);
-    wa.apply(threeDCoords);
+	addFileDialog.m_ofn.lpstrTitle = LPCTSTR("Save the Loft Construction Data...");
+	int nModal = addFileDialog.DoModal();
+	CString m_strAddFile;
+
+	if (nModal != IDOK) return;
+
+	m_strAddFile = addFileDialog.GetFileName();
+	SetCurrentDirectory(addFileDialog.GetFolderPath());
+	SoWriteAction wa;
+	wa.getOutput()->openFile(m_strAddFile);
+	wa.apply(sectionCoords);
+	wa.apply(hScaleCoords);
+	wa.apply(vScaleCoords);
+	wa.apply(twistCoords);
+	wa.apply(threeDCoords);
+	if (fExtruder->fShape2Coords != NULL){
+		wa.apply(fExtruder->fShape2Coords);
+    }
+
     wa.getOutput()->closeFile();
 }
 
@@ -943,14 +953,18 @@ void CpMakerView::OnAntisquish()
 
 void CpMakerView::OnFlattenImportedCoords() 
 {
+	// 19.08.24 make an indexed face set (or pretend it is one) and use Extruder::Flatten() ?
     // flatten a zig-zag line
 	CString filename = GetFilename(".iv", "*.iv", "load a zig-zag coordinate set to flatten...");
 	if (strcmp(filename, "") == 0) return;
 
-    SoSeparator* tempNode = new SoSeparator;
+
+	
+	
+	SoSeparator* tempNode = new SoSeparator;
     tempNode->ref();
     SoCoordinate3* inputCoords = new SoCoordinate3;
-    inputCoords->point.deleteValues(0,-1);
+    inputCoords->point.deleteValues(0,-1);  
     SoInput myInput;
     myInput.openFile(filename);
     tempNode->addChild(SoDB::readAll(&myInput));
@@ -961,15 +975,20 @@ void CpMakerView::OnFlattenImportedCoords()
 
     for (int i = 0; i < coords->point.getNum(); i++) {
         inputCoords->point.set1Value(i, coords->point[i]);
+		TRACE("point[%d] = %f  %f  %f\n", i, coords->point[i][0], coords->point[i][1], coords->point[i][2]);
     }
 
     tempNode->removeAllChildren();
 
     int numSides = 1;
-    int numPathCoords = inputCoords->point.getNum();
+    int numPathCoords = inputCoords->point.getNum(); /// how is this used???
+	
+	fExtruder->fFlattener->flatten_polylines(inputCoords, 1, numPathCoords );  // divide by 2? 
 
-    SoCoordinate3* flatCoords = new SoCoordinate3;
-    flatCoords->ref();
+
+/*
+    //SoCoordinate3* flatCoords = new SoCoordinate3;
+    //flatCoords->ref();
     
     //SoSeparator* tempSep = new SoSeparator;
     //tempSep->ref();
@@ -980,33 +999,33 @@ void CpMakerView::OnFlattenImportedCoords()
     //int index;
 
     CString dxfFilename = filename.SpanExcluding(".");
-    dxfFilename += "_flat.dxf";
+    dxfFilename += "-flat.dxf";
 
-    FILE * fp = fopen(dxfFilename, "w");
+    FILE * fp = fopen(dxfFilename, "w");  // why won't open
     if(NULL == fp){
         TRACE("could not open file %s\n", dxfFilename);
+		
         return;
     }
 	WriteDXF * write_dxf = new WriteDXF(fp);
 
 
 
-//    fprintf(fp,"  0\nSECTION\n  2\nENTITIES\n");
+    // fprintf(fp,"  0\nSECTION\n  2\nENTITIES\n");
 
     int count = 0;
     //newCoords->point.deleteValues(0, -1);
     flatCoords->point.deleteValues(0, -1);
 
-    //fFlattener->flatten(inputCoords, flatCoords);  
+   // fExtruder::fFlattener->flatten(inputCoords, flatCoords);  
 	write_dxf->WriteCoords(flatCoords);
-	/*
+	
     int numVertices = flatCoords->point.getNum();
 
     fprintf(fp,"  0\nLWPOLYLINE\n  5\n444\n100\nAcDbEntity\n  8\n%s\n100\n", "0");
     fprintf(fp,"AcDbPolyline\n 90\n%9d\n 70\n   128\n 43\n0.0\n", numVertices);
     //for(int i = 0; i < numVertices - 3; i += 2)
-    for(int i = 0; i < numVertices; i++)
-    {
+    for(int i = 0; i < numVertices; i++) {
         SbVec3f point = flatCoords->point[i];
         fprintf(fp," 10\n");
         fprintf(fp,"%f\n", point[0]);
@@ -1015,12 +1034,14 @@ void CpMakerView::OnFlattenImportedCoords()
     }
     fprintf(fp,"  0\nENDSEC\n  0\nEOF\n");
 
-	*/
+	
     fclose(fp);
 
 //	tempSep->unref();
     flatCoords->unref();
 //	newCoords->unref();
+
+*/
 }
 
 
@@ -1221,7 +1242,7 @@ void CpMakerView::OnVertEqHoriz()
    else
    {
       submenu->CheckMenuItem(ID_VERT_EQ_HORIZ, MF_CHECKED | MF_BYCOMMAND);
-      fIsEqualScale = TRUE;
+	  fIsEqualScale = FALSE; // !!!  TRUE;
    }
    this->OnShowDialog();  // updates the 3d object...
 }
@@ -1545,7 +1566,11 @@ void CpMakerView::ReadLDF(CString filename, SoCoordinate3 * _sectionCoords,
         _twistCoords->copyFieldValues(tTwistCoords);
     if(tThreeDCoords != NULL)
         _loftPathCoords->copyFieldValues(tThreeDCoords);
-
+/*
+	SoCoordinate3 *tSection2Coords = (SoCoordinate3 *)findNodeByName(
+		tempSep, "second_section_coords");
+	if(section_section_coords)
+*/
     //if(tSectionCoords != NULL) { TRACE("sectionCoords\n"); }
     //if(tHScaleCoords  != NULL) { TRACE("hScaleCoords\n");  }
     //if(tVScaleCoords  != NULL) { TRACE("vScaleCoords\n");  }
@@ -1840,6 +1865,7 @@ void CpMakerView::OnLoadMultSections()
 	}
 	if (fExtruder->fShape2Coords == NULL) {
 		fExtruder->fShape2Coords = new SoCoordinate3;
+		fExtruder->fShape2Coords->setName("second_cross_section");
 		fExtruder->fShape2Coords->ref();
 	}
 	fExtruder->fShape2Coords->point.copyFrom(section_1_coords->point);
@@ -1874,6 +1900,7 @@ void CpMakerView::OnFlatten() //
 
 void CpMakerView::OnFileExtrudealongmultiplelines()
 {
+	loftRoot->removeAllChildren();
 	CString filename = GetFilename(".iv", "*.iv", "load a file with multiple Coordinate3 nodes...");
 	if (strcmp(filename, "") == 0) return;
 
@@ -1884,5 +1911,69 @@ void CpMakerView::OnFileExtrudealongmultiplelines()
 	SoInput myInput;
 	myInput.openFile(filename);
 	tempNode->addChild(SoDB::readAll(&myInput));
+	// copy Coordinate3 node, then make serial
+	SoSearchAction search;
+	SoPathList path_list;
+	SoPath *path;
+	SoNode *node;
+
+	search.setType(SoCoordinate3::getClassTypeId(), FALSE);
+	search.setInterest(SoSearchAction::ALL);
+	search.apply(tempNode);
+
+	path_list = search.getPaths();
+	int num_paths = path_list.getLength();
+	for (int i = 0; i < num_paths; i++) {
+		path = path_list[i];
+		if (path == NULL) return;
+		SoCoordinate3 * new_threeDCoords = (SoCoordinate3 *) path->getTail();
+		if (new_threeDCoords->point.getNum() > 1) {
+			SoSeparator * branch_sep;
+			branch_sep = fExtruder->extrude(this->sectionCoords, new_threeDCoords, this->hScaleCoords,
+				this->vScaleCoords, this->twistCoords, thickness, false);
+			loftRoot->addChild(branch_sep);
+		}
+	}
+	myInput.closeFile();
+}
+
+
+void CpMakerView::OnExtrudeMultipleSections()
+{
+	loftRoot->removeAllChildren();
+	CString filename = GetFilename(".iv", "*.iv", "load a file with multiple cross-section shape Coordinate3 nodes...");
+	if (strcmp(filename, "") == 0) return;
+
+	SoSeparator* tempNode = new SoSeparator;
+	tempNode->ref();
+	SoCoordinate3* inputCoords = new SoCoordinate3;
+	inputCoords->point.deleteValues(0, -1);
+	SoInput myInput;
+	myInput.openFile(filename);
+	tempNode->addChild(SoDB::readAll(&myInput));
+	// copy Coordinate3 node, then make serial
+	SoSearchAction search;
+	SoPathList path_list;
+	SoPath *path;
+	SoNode *node;
+
+	search.setType(SoCoordinate3::getClassTypeId(), FALSE);
+	search.setInterest(SoSearchAction::ALL);
+	search.apply(tempNode);
+
+	path_list = search.getPaths();
+	int num_sections = path_list.getLength();
+	for (int i = 0; i < num_sections; i++) {
+		path = path_list[i];
+		if (path == NULL) return;
+		SoCoordinate3 * new_sectionCoords;
+		new_sectionCoords = (SoCoordinate3 *)path->getTail();
+		if (new_sectionCoords->point.getNum() > 1) {
+			SoSeparator * branch_sep;
+			branch_sep = fExtruder->extrude(new_sectionCoords, this->threeDCoords, this->hScaleCoords,
+				this->vScaleCoords, this->twistCoords, thickness, false);
+			loftRoot->addChild(branch_sep);
+		}
+	}
 	myInput.closeFile();
 }
