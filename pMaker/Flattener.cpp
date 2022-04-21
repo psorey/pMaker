@@ -20,6 +20,9 @@
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoSearchAction.h>
 
+#define THICKEN_INTERVAL 20
+
+
 //Flattener::Flattener(void);
 
 Flattener::Flattener(void) {
@@ -63,7 +66,12 @@ SbVec3f Flattener::GetVectorPoint(SbVec3f pt, float length, float theta)
 // flatten_polylines(zigzag_coords, 1, numPathCoords? )
 
 
+
 ///////// * Using this one  * ///////////
+
+#define MARKER_SPACING 10
+#define MARKER_WIDTH .2
+
 void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords) 
 {
 	// create new DXF file for flattened sides...
@@ -117,26 +125,37 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		int numVertices = flatCoords->point.getNum();
 		char layer[4];
 		_itoa( j, layer, 10);
-        int marker_spacing = 10;
+        int marker_spacing = MARKER_SPACING;
         float line_width = 0.0;
         int count2 = 0;
-        writeDXF->WriteLWPOLYLINEHeader(layer, numVertices); 
-		for (int i = 0; i < numVertices; i += 2) {
+        writeDXF->WriteLWPOLYLINEHeader(layer, numVertices/2); 
+		int i = 0;
+		for ( i = 0; i < numVertices; i += 2) {
             count2++;
 			SbVec3f point = flatCoords->point[i];
-            if(count2 % marker_spacing == 0) 
-                writeDXF->WriteLWPOLYLINEPoint(point, 0.2);
+			if (count2 % (marker_spacing * 10) == 0)    // emphasize every tenth marker
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 12);
+			else if (count2 % (marker_spacing * 5) == 0)    // emphasize every fifth marker
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 4);
+			else if (count2 % marker_spacing == 0)
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH);
             else
                 writeDXF->WriteLWPOLYLINEPoint(point, 0.0);
 		}
+		writeDXF->WriteZero();
         count2 = 0;
-		for (int i = numVertices - 1; i > 0; i -= 2) {
+		writeDXF->WriteLWPOLYLINEHeader(layer, numVertices / 2);
+		for( i = 1; i < numVertices; i += 2) {
             count2++;
 			SbVec3f point = flatCoords->point[i];
-            if(count2 % marker_spacing == 0) 
-                writeDXF->WriteLWPOLYLINEPoint(point, 0.2);
-            else
-                writeDXF->WriteLWPOLYLINEPoint(point, 0.0);
+			if (count2 % (marker_spacing * 10) == 0)    // emphasize every tenth marker
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 12);
+			else if (count2 % (marker_spacing * 5) == 0)    // emphasize every fifth marker
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 4);
+			else if (count2 % marker_spacing == 0)
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH);
+			else
+				writeDXF->WriteLWPOLYLINEPoint(point, 0.0);
 		}
         writeDXF->WriteZero();
 
@@ -144,7 +163,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		int  fLastCoord = 0;
 		SoMFVec3f  fScallopedLine;  // append output from insert_placed_coords() to fScallopedLine
 
-#define INSERT_COORDS 1  // if TRUE objects are placed along the polylines
+#define INSERT_COORDS 0  // if TRUE objects placed_coords are placed along the polylines
 
 		////////////////////////////////////////////////////////////
 		// if an object is being placed on the flattened geometry...
@@ -186,10 +205,13 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 
 
 #define PADDLE_SPACING 0
-#define NEW_PADDLE_SPACING 1
-#define PROW_SPACING 0
-#define PROW_SPACING_FINAL 0
+#define NEW_PADDLE_SPACING 0  //  use this one
 
+#define PROW_SPACING 0
+#define PROW_SPACING_FINAL 0   // use this one
+
+#define NEW_CHRISTIE_NARROWER 0
+#define NEW_CHRISTIE_SPACING 1
 #define CHRISTIE_SPACING 0
 #define STALK_SPACING 0
 #define SEPAL_SPACING 0
@@ -197,6 +219,23 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 #define ROCK_SPACING 0
 #define PETAL_SPACING 0
 
+
+			if (NEW_CHRISTIE_NARROWER) {
+				overall_scale = 1.2;  // 3.0
+				begin_spacing = 1.1 * overall_scale; // the starting distance between placed objects
+				end_spacing = 1.1 * overall_scale;
+				begin_scale = .9;
+				end_scale = .9;
+			}
+
+
+			if (NEW_CHRISTIE_SPACING) {
+				overall_scale = 1.8;  // 3.0
+				begin_spacing = 1.1 * overall_scale; // the starting distance between placed objects
+				end_spacing = 1.1 * overall_scale;
+				begin_scale = .9;
+				end_scale = .9;
+			}
 
 			if (PROW_SPACING) {
 				overall_scale = 4;

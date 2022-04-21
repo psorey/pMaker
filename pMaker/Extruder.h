@@ -10,6 +10,9 @@ class SoCoordinate3;
 class SoIndexedFaceSet;
 class Flattener;
 class SbVec3d;
+class SoText2;
+class SoTransform;
+class SoMaterial;
 
 
 class Extruder 
@@ -34,12 +37,18 @@ public:
     // output...
     SoCoordinate3       * fLoftCoords;               // we instantiate copies of these to add to model
     SoIndexedFaceSet    * fLoftFaces;
+	SoMaterial          * fLoftMaterial;
 
     float               fThickness;                  // maintain this constant thickness along extrusion
     int                 fUpperLimit;
     int                 fLowerLimit;
     float               fFractalScale;               // overall scale
 	Flattener           * fFlattener;
+
+	SoSeparator         * fTextSeparator;
+	SoTransform         * fTextTransform;
+	SoText2				* fText;
+
 
 // member functions:
 

@@ -15,12 +15,14 @@
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoIndexedTriangleStripSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoFaceSet.h>
+#include <Inventor/nodes/SoText2.h>
 #include <Inventor/actions/SoWriteAction.h>
 
 // #define MAKE_SAILS -- for putting 'sails' into tetrahedral structures
@@ -42,16 +44,25 @@ Extruder::Extruder(void)    // does no transformations on input valuesF other th
     fLoftFaces         = new SoIndexedFaceSet;  // for output
     fLoftScaleCoords   = new SoCoordinate3;     // (horiz_scale, vert_scale, 0_not_used)
     fLoftTwistCoords   = new SoCoordinate3;     // (twist, 0_not_used, 0_not_used)
-    fLoftCoords->ref(); //
+	fLoftMaterial = new SoMaterial;
+	fLoftMaterial->diffuseColor.set1Value(0, SbColor(.5, .5, .5));	
+	fLoftMaterial->diffuseColor.set1Value(1, SbColor(.9, .9, .9));
+	fLoftMaterial->diffuseColor.set1Value(2, SbColor(.9, .9, .1));
+	fLoftMaterial->diffuseColor.set1Value(3, SbColor(.9, .1, .1));
+	fLoftCoords->ref(); //
     fLoftFaces->ref();
     fLoftScaleCoords->ref();
     fLoftTwistCoords->ref(); 
+	fLoftMaterial->ref();
     fClosedShape       = TRUE;
     fFractalScale      = 1.0;
-    //fEqualScale        = FALSE;
+    //fEqualScale      = FALSE;
     fThickness         = 0.0;
 	fFlattener = new Flattener;
 	fShape2Coords = NULL;
+	fTextSeparator = NULL;
+
+
 }
 
 Extruder::~Extruder(){
@@ -59,8 +70,9 @@ Extruder::~Extruder(){
     if(NULL != fLoftFaces) fLoftFaces->unref();
     if(NULL != fLoftScaleCoords) fLoftScaleCoords->unref();
     if(NULL != fLoftTwistCoords) fLoftTwistCoords->unref();
+	if(NULL != fLoftMaterial) fLoftMaterial->unref();
 	if(NULL != fFlattener) delete fFlattener;
-	if (NULL != fShape2Coords) fShape2Coords->unref();
+	if(NULL != fShape2Coords) fShape2Coords->unref();
 }
 
 SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords, 
@@ -95,8 +107,7 @@ SoSeparator * Extruder::extrude(SoCoordinate3 * shapeCoords,
 	coords->ref();
 	SoLineSet * lines = new SoLineSet;
 	lines->ref();
-	// int coord_to_save = 6;
-	// int coords_count = 0;
+
 	for (int k = 0; k < numShapeCoords; k++) {
 		coords->point.deleteValues(0, -1);
 		for (int i = 0; i < numPathCoords; i++) {
@@ -297,6 +308,11 @@ void Extruder::makeLoftScaleCoords()  // this only needs to be called when the l
 void Extruder::makeLoftObject()
 {
 	TRACE("makeLoftObject()\n");
+	if (fTextSeparator != NULL)
+		fTextSeparator->unref();
+
+	fTextSeparator = new SoSeparator;
+	fTextSeparator->ref();
 
 	fLoftCoords->point.deleteValues(0);
 	fLoftFaces->coordIndex.deleteValues(0);
@@ -307,7 +323,10 @@ void Extruder::makeLoftObject()
 	int numPathVertices = fLoftPathCoords->point.getNum();  //loft path usually starts at 0,0,0
 	int fLoftCoordsCount = 0;
 	float currentLength = 0.0;
+	int interval;
 
+	interval = 10;
+	int count_to_interval = interval - 2;
 	for (int i = 0; i < numPathVertices; i++) {
 		if(i > 0)
 			currentLength += (fLoftPathCoords->point[i] - fLoftPathCoords->point[i - 1]).length();
@@ -351,14 +370,46 @@ void Extruder::makeLoftObject()
 		getShapeCoords(interpolatedShapeCoords, currentLength / fCalculatedPathLength); 
 		// shapeCoords -- calculate if more than one cross-section -- based on % distance along path
 		// and store in scaledCoords
+		count_to_interval++;
 		for (int j = 0; j < numShapeVertices; j++) {
 			SbVec3f result;
 			//TRACE("doing this\n");
 			// mat.multVecMatrix(fShapeCoords->point[j], result);
 			mat.multVecMatrix(interpolatedShapeCoords[j], result);
-
 			scaledCoords.set1Value(j, result);
+			//calculate_angles_between_vertices(scaledCoords);
+			//if(count_to_interval == interval)
+			 // TRACE("x = %.2f     \ty = %.2f  \n", scaledCoords[j][0], scaledCoords[j][1] );
 		}
+		// TRACE("\n\n");
+		// Calculate angles between vertices of shape
+
+		if (count_to_interval == interval) {
+			count_to_interval = 0;
+			float theta2 = GetTheta(scaledCoords[4], scaledCoords[5]);
+			float theta1 = GetTheta(scaledCoords[3], scaledCoords[4]);
+			
+			float theta1_deg = (theta1 / M_PI * 180) + (theta1 > 0 ? 0 : 360);
+			float theta2_deg = (theta2 / M_PI * 180) + (theta2 > 0 ? 0 : 360);
+						
+			//TRACE("theta1 = %.2f     theta2 = %.2f\n", theta1_deg, theta2_deg);
+			float angle = fabs((theta2_deg - theta1_deg));
+		   // if (angle > 180)
+			angle = 180 - angle;
+			TRACE("i = %d \tangle = %.2f\n", i, angle);
+			char str[20];
+			sprintf(str, "%.2f\n", angle);
+			fText = new SoText2;
+			fText->string.setValue(str);
+			fTextTransform = new SoTransform();
+			fTextTransform->translation.setValue(scaledCoords[4]);
+			fTextSeparator->addChild(fTextTransform);
+			fTextSeparator->addChild(fText);
+			//fRoot->addChild(fTextSeparator);
+		}
+		//for (int j = 1; j < numShapeVertices; j++) {
+			//GetTheta(//scaledCoords
+		//}
 		if (fThickness > .0001)
 			scaleCoordsForThickness(scaledCoords);
 
@@ -399,9 +450,12 @@ void Extruder::makeLoftObject()
 	SoCoordinate3 * new_coords = new SoCoordinate3;
 	new_coords->ref();
 	int count = 0;
+	int material_count = 0;
+	int material_number = 0;
 	fUpperLimit = fLoftPathCoords->point.getNum() - 1;
 	fLowerLimit = 0;
 	for (int jj = 0; jj < numShapeVertices - 1; jj++) {
+		//material_count = 0;
 		for (int i = jj + fLowerLimit * numShapeVertices; i < jj + fUpperLimit * numShapeVertices; i++) {
 			fLoftFaces->coordIndex.set1Value(count++, i);
 			fLoftFaces->coordIndex.set1Value(count++, i + 1);
@@ -411,7 +465,18 @@ void Extruder::makeLoftObject()
 			fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices + 1);
 			fLoftFaces->coordIndex.set1Value(count++, i + numShapeVertices);
 			fLoftFaces->coordIndex.set1Value(count++, -1);
-			i += numShapeVertices - 1;
+		    i += numShapeVertices - 1;
+
+			if (material_count / 2 % (10 * 10) == 0)
+				material_number = 3;
+			else if (material_count / 2 % (10 * 5) == 0)
+				material_number = 2;
+			else if (material_count / 2 % 10 == 0)
+				material_number = 1;
+			else material_number = 0;
+			if (jj > 0) material_number = 0;
+			fLoftFaces->materialIndex.set1Value(material_count++, material_number);
+			fLoftFaces->materialIndex.set1Value(material_count++, material_number);
 		}
 	}
 #ifdef MAKE_SAILS
@@ -506,17 +571,6 @@ SbVec3f Extruder::interpolateScale(double length /* really a ratio of length : f
             }
         }
     }
-    //if (NULL == fVScaleCoords || fVScaleCoords->point.getNum() == 2) {      // we're done...
-    //    vScale = hScale;
-	//	TRACE("not doing v-scale\n");
-    //    return SbVec3f(hScale, hScale, 1);
-    //}
-	
-	
-	
-	//return SbVec3f(hScale, hScale, 1);  // !!!!!!!
-
-
 
 
 	TRACE("doing v-scale\n");
@@ -624,20 +678,27 @@ SbVec3f Extruder::GetIntersection(SbVec3f ptA1, SbVec3f ptA2, SbVec3f ptB1, SbVe
 
 SoSeparator * Extruder::createExtrusionNode(void)
 {
-    SoSeparator       *brRoot = new SoSeparator;         
-    SoCoordinate3     *loftCoords = new SoCoordinate3;
-    SoIndexedFaceSet  *loftFaces  = new SoIndexedFaceSet;
+	TRACE("create extrusion node \n\n\n");
+    SoSeparator       * brRoot = new SoSeparator;         
+    SoCoordinate3     * loftCoords = new SoCoordinate3;
+    SoIndexedFaceSet  * loftFaces  = new SoIndexedFaceSet;
+	SoMaterial        * loftMaterial = new SoMaterial;
+	SoMaterialBinding * binding = new SoMaterialBinding;
+	binding->value.setValue(SoMaterialBinding::PER_FACE_INDEXED);
     loftCoords->copyFieldValues(fLoftCoords);    
     loftFaces->copyFieldValues(fLoftFaces);
+	loftMaterial->copyFieldValues(fLoftMaterial);
     brRoot->addChild(loftCoords);
+	brRoot->addChild(loftMaterial);
+	brRoot->addChild(binding);
     brRoot->addChild(loftFaces);
-	SoMaterial  *line_material = new SoMaterial;
-	SoDrawStyle *draw_style = new SoDrawStyle;
-	SoLineSet   *line_set = new SoLineSet;
-	line_material->diffuseColor.setValue(1, 0, 0);
-	draw_style->lineWidth.setValue(2);
-	brRoot->addChild(line_material);
-	brRoot->addChild(draw_style);
+	//SoMaterial  * line_material = new SoMaterial;
+	//SoDrawStyle * draw_style = new SoDrawStyle;
+	//SoLineSet   * line_set = new SoLineSet;
+	//line_material->diffuseColor.setValue(1, 0, 0);
+	//draw_style->lineWidth.setValue(2);
+	//brRoot->addChild(line_material);
+	//brRoot->addChild(draw_style);
 	//brRoot->addChild(line_set);
     return brRoot;
 }
