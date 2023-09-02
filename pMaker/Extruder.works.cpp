@@ -47,17 +47,16 @@ Extruder::Extruder(void)    // does no transformations on input valuesF other th
 	fLoftMaterial = new SoMaterial;
 
 	// colors for 3-sided extrusion -- Spokane
+	fLoftMaterial->diffuseColor.set1Value(0, SbColor(.7, .5, .5)); // side 0
+	fLoftMaterial->diffuseColor.set1Value(1, SbColor(.6, .6, .5)); // side 1
+	fLoftMaterial->diffuseColor.set1Value(2, SbColor(.5, .7, .5)); // side 2
 
-	fLoftMaterial->diffuseColor.set1Value(0, SbColor(.8, .4, .4)); // side 0 - red
-	fLoftMaterial->diffuseColor.set1Value(1, SbColor(.7, .7, .3)); // side 1 - yellow
-	fLoftMaterial->diffuseColor.set1Value(2, SbColor(.4, .8, .4)); // side 2 - green (back side)
-
-	fLoftMaterial->diffuseColor.set1Value(3, SbColor(.9, .9, .9)); //  10  white
-	fLoftMaterial->diffuseColor.set1Value(4, SbColor(.9, .9, .1)); //  50  yellow
-	fLoftMaterial->diffuseColor.set1Value(5, SbColor(.9, .1, .1)); // 100  red
+	fLoftMaterial->diffuseColor.set1Value(3, SbColor(.9, .9, .9)); // 5
+	fLoftMaterial->diffuseColor.set1Value(4, SbColor(.9, .9, .1)); // 10
+	fLoftMaterial->diffuseColor.set1Value(5, SbColor(.9, .1, .1)); // 
 
 	fLoftCoords->ref(); //
-    fLoftFaces->ref();   
+    fLoftFaces->ref();
     fLoftScaleCoords->ref();
     fLoftTwistCoords->ref(); 
 	fLoftMaterial->ref();

@@ -71,7 +71,7 @@ SbVec3f Flattener::GetVectorPoint(SbVec3f pt, float length, float theta)
 
 #define MARKER_SPACING 10
 #define MARKER_WIDTH .1
-// flatten_polylines : all sides are connected polylines
+
 void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int numPathCoords) 
 {
 	// create new DXF file for flattened sides...
@@ -130,14 +130,13 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
         int count2 = 0;
         writeDXF->WriteLWPOLYLINEHeader(layer, numVertices/2); 
 		int i = 0;
-
-		for ( i = 0; i < numVertices; i += 2) {  // write the left outline 
+		for ( i = 0; i < numVertices; i += 2) {
             
 			SbVec3f point = flatCoords->point[i];
 			if (count2 % (marker_spacing * 10) == 0)    // emphasize every tenth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 8);
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 5);
 			else if (count2 % (marker_spacing * 5) == 0)    // emphasize every fifth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 3);
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 2);
 			else if (count2 % marker_spacing == 0)
 				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH);
             else
@@ -146,16 +145,14 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 		}
 		writeDXF->WriteZero();
         count2 = 0;
-
 		writeDXF->WriteLWPOLYLINEHeader(layer, numVertices / 2);
-
-		for( i = 1; i < numVertices; i += 2) {  // write the right outline 
+		for( i = 1; i < numVertices; i += 2) {
             
 			SbVec3f point = flatCoords->point[i];
 			if (count2 % (marker_spacing * 10) == 0)    // emphasize every tenth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 8);
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 5);
 			else if (count2 % (marker_spacing * 5) == 0)    // emphasize every fifth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 3);
+				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 2);
 			else if (count2 % marker_spacing == 0)
 				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH);
 			else
@@ -163,25 +160,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 			count2++;
 		}
         writeDXF->WriteZero();
-		// now generate a centerline with tick marks
-		count2 = 0;
 
-		writeDXF->WriteLWPOLYLINEHeader(layer, numVertices / 2);
-
-		for (i = 1; i < numVertices; i += 2) {   // write the centerline
-
-			SbVec3f point = (flatCoords->point[i] - flatCoords->point[i - 1]) / 2 + flatCoords->point[i - 1];
-			if (count2 % (marker_spacing * 10) == 0)    // emphasize every tenth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 8);
-			else if (count2 % (marker_spacing * 5) == 0)    // emphasize every fifth marker
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH * 3);
-			else if (count2 % marker_spacing == 0)
-				writeDXF->WriteLWPOLYLINEPoint(point, MARKER_WIDTH);
-			else
-				writeDXF->WriteLWPOLYLINEPoint(point, 0.0);
-			count2++;
-		}
-		writeDXF->WriteZero();
 
 		int  fLastCoord = 0;
 		SoMFVec3f  fScallopedLine;  // append output from insert_placed_coords() to fScallopedLine
@@ -243,6 +222,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 #define GUIDE_SPACING 0
 #define ROCK_SPACING 0
 #define PETAL_SPACING 0
+
 
 			if (SPOKANE_SPACING) {
 				overall_scale = 1.8;  // 3.0
@@ -309,6 +289,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 				end_scale = .8;
 			}
 
+
 			if (CHRISTIE_SPACING) {
 				overall_scale = 4;
 				begin_spacing = 1 * overall_scale; // the starting distance between placed objects
@@ -316,6 +297,7 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 				begin_scale = 1;
 				end_scale = 1;
 			}
+
 
 			if (STALK_SPACING) {
 				begin_spacing = 1.95; // the starting distance between placed objects
@@ -369,6 +351,8 @@ void Flattener::flatten_polylines(SoCoordinate3 * loftCoords, int numSides, int 
 	tempSep->unref();
 	flatCoords->unref();
 }	
+
+
 
 
 int Flattener::get_point_at_length(const SoMFVec3f line, float length) {
@@ -455,7 +439,8 @@ void Flattener::insertPlacedCoords(     // called once per leg of the shape, to 
 			for (int i = 0; i < num; i++) {
 				insert_coords->point.set1Value(num -1 - i, copy[i]);
 			}
-		}	
+		}
+		
 		// modify to return the list of points from the input point (last point?) # to the point number after the intersection
 		// place the actual coords over the actual line and get intersection points
 		// int coord_before_intersection;
@@ -480,7 +465,8 @@ void Flattener::insertPlacedCoords(     // called once per leg of the shape, to 
 				accumulated_segments.set1Value(i + num_exist_pts, last_bit_plus_trimmed_insert[i]);
 			}
 			insert_coords->unref();
-		}	
+		}
+		
 		distance += spacing;
 	}
 	SoCoordinate3 * scalloped_side = new SoCoordinate3;
